@@ -29,4 +29,49 @@ This library is to use easily MQTT library of hirotakaster. This library is inte
     * Click on **INCLUDE IN APP**. And return to "MYAPP.ino"
     * Do the same to add MQTT library.
 
+
+**Note: You will have to include MQTT and UbidotsMQTT libraries manually, because in this momment Particle doesn't support include both automatically**
+
+## Suscribe to a variable
+
 # WORK IN PROGRESS
+
+## Publish variables
+
+You could use the next code to post variables to Ubidots Cloud:
+
+```cpp
+// This #include statement was automatically added by the Particle IDE.
+#include "MQTT/MQTT.h"
+
+// This #include statement was automatically added by the Particle IDE.
+#include "UbidotsMQTT.h"
+#define TOKEN "Your_Token_Here"  // Add here your Ubidots TOKEN
+#define VARIABLE_IDENTIFIER_ONE "humidity" // Add a variable identifier, it must be in lowercase
+#define VARIABLE_IDENTIFIER_TWO "temperature" // Add a variable identifier, it must be in lowercase
+
+Ubidots client(TOKEN);
+
+
+void callback(char* topic, uint8_t* payload, unsigned int length) {
+    char p[length + 1];
+    memcpy(p, payload, length);
+    p[length] = NULL;
+    String message(p);
+    Serial.println(message);
+    delay(1000);
+}
+
+void setup() {
+    Serial.begin(115200);
+    client.init(callback);
+}
+
+void loop() {
+    float value_one = analogRead(A0);
+    float value_two = analogRead(A1);
+    client.add(VARIABLE_IDENTIFIER_ONE, value_one);
+    client.add(VARIABLE_IDENTIFIER_TWO, value_two);
+    client.sendValues();
+}
+```
