@@ -23,7 +23,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Made by Mateo Velez - Metavix for Ubidots Inc
 
 */
-
 #include "UbidotsMQTT.h"
 
 #if defined(ARDUINO)
@@ -45,7 +44,8 @@ Ubidots::Ubidots(char* token, char* server) {
     _pId = new char[str.length() + 1];
     strcpy(_pId, str.c_str());
 }
-bool Ubidots::init() {
+bool Ubidots::init(void (*function)(char*, uint8_t*, unsigned int)) {
+    callback = function;
     _broker.connect(_pId, _token, "");
 }
 bool Ubidots::getValueSubscribe(char* labelDataSource, char* labelVariable) {
@@ -95,7 +95,7 @@ bool Ubidots::sendValues() {
     if (_broker.isConnected()) {
         _broker.publish(topic, payload);
     } else {
-        while(!_broker.connect(_pId, _token, "")) {
+        while (!_broker.connect(_pId, _token, "")) {
             timeout++;
             delay(1);
             if (timeout > 5000)
@@ -125,12 +125,4 @@ bool Ubidots::add(char* label, float value, char* context, double timestamp) {
         Serial.println(F("You are sending more than the maximum of consecutive variables"));
         currentValue = MAX_VALUES;
     }
-}
-void callback(char* topic, uint8_t* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-    Serial.println(message);
-    delay(1000);
 }

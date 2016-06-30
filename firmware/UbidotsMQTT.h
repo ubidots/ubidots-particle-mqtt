@@ -24,7 +24,6 @@ Made by Mateo Velez - Metavix for Ubidots Inc
 
 */
 
-
 #ifndef UbidotsMQTT_H
 #define UbidotsMQTT_H
 #include "MQTT/MQTT.h"
@@ -49,30 +48,27 @@ typedef struct Value {
     double timestamp;
     float value;
 } Value;
-void callback(char* topic, uint8_t* payload, unsigned int length);
-
-
 
 
 class Ubidots {
  private:
     MQTT _broker = MQTT(SERVER, MQTT_PORT, callback);
+    void (*callback)(char*, uint8_t*, unsigned int);
     uint8_t currentValue;
     char* _server;
     char* _token;
     char* _pId;
     char* _dsName;
     Value * val;
-    
+
  public:
     Ubidots(char* token, char* server = SERVER);
     bool sendValues();
     bool getValueSubscribe(char* labelDataSource, char* labelVariable);
-    bool init();
+    bool init(void (*function)(char*, uint8_t*, unsigned int));
     bool add(char* label, float value);
     bool add(char* label, float value, char* context);
     bool add(char* label, float value, char* context, double timestam);
 };
 
-#endif 
-
+#endif
