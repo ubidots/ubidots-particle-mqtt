@@ -31,21 +31,14 @@ Made by Mateo Velez - Metavix for Ubidots Inc
 #include "application.h"
 #endif
 
-void callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-    Serial.write(payload, length);
-    Serial.println(topic);
-    delay(3000);
-}
+
 
 // ------------------------------------------------------------
 // -----------------Ubidots Fucntions added--------------------.
 // ------------------------------------------------------------
-Ubidots::Ubidots(char* token, char* server) {
+Ubidots::Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), char* server) {
     _server = server;
+    this->callback = callback;
     _token = token;
     _dsName = "Particle";
     currentValue = 0;
@@ -53,9 +46,11 @@ Ubidots::Ubidots(char* token, char* server) {
     String str = Particle.deviceID();
     _pId = new char[str.length() + 1];
     strcpy(_pId, str.c_str());
+    _broker = MQTT(SERVER, MQTT_PORT, callback);
 }
 bool Ubidots::connect() {
-    return _broker.connect(_pId, _token, NULL);
+   
+   return _broker.connect(_pId, _token, "");
 }
 bool Ubidots::getValueSubscribe(char* labelDataSource, char* labelVariable) {
     char topic[250];
@@ -98,6 +93,7 @@ bool Ubidots::sendValues() {
     sprintf(payload, "%s}", payload);
     delay(10);
     if (_broker.publish(topic, payload)) {
+        
         currentValue = 0;
         delay(10);
         return true;
@@ -109,6 +105,7 @@ bool Ubidots::sendValues() {
         currentValue = 0;
         return false;
     }
+    
 }
 bool Ubidots::add(char* label, float value) {
     return add(label, value, NULL, NULL);
@@ -128,12 +125,12 @@ bool Ubidots::add(char* label, float value, char* context, double timestamp) {
     }
 }
 bool Ubidots::loop() {
-    if (_broker.loop()) {
-        return true;
+    if (_broker.loop()){
+        Serial.println("Helllooooooooooooo");
     } else {
         connect();
         _broker.loop();
-        return false;
+        
     }
 }
 

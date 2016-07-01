@@ -50,11 +50,11 @@ typedef struct Value {
     float value;
 } Value;
 
-void callback(char* topic, byte* payload, unsigned int length);
 
 class Ubidots {
  private:
-    MQTT _broker = MQTT(SERVER, MQTT_PORT, callback);
+    void (*callback)(char*,uint8_t*,unsigned int);
+    MQTT _broker;
     uint8_t currentValue;
     char* _server;
     char* _token;
@@ -63,7 +63,7 @@ class Ubidots {
     Value * val;
 
  public:
-    Ubidots(char* token, char* server = SERVER);
+    Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), char* server = SERVER);
     bool loop();
     bool sendValues();
     bool getValueSubscribe(char* labelDataSource, char* labelVariable);
