@@ -31,11 +31,6 @@ Made by Mateo Velez - Metavix for Ubidots Inc
 #include "application.h"
 #endif
 
-
-
-// ------------------------------------------------------------
-// -----------------Ubidots Fucntions added--------------------.
-// ------------------------------------------------------------
 Ubidots::Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), char* server) {
     _server = server;
     this->callback = callback;
