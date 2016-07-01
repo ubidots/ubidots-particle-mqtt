@@ -50,21 +50,24 @@ You could use the next code to post variables to Ubidots Cloud:
 #define VARIABLE_IDENTIFIER_ONE "humidity" // Add a variable identifier, it must be in lowercase
 #define VARIABLE_IDENTIFIER_TWO "temperature" // Add a variable identifier, it must be in lowercase
 
-Ubidots client(TOKEN);
+void callback(char* topic, byte* payload, unsigned int length);
 
+Ubidots client(TOKEN, callback);
 
-void callback(char* topic, uint8_t* payload, unsigned int length) {
+void callback(char* topic, byte* payload, unsigned int length) {
     char p[length + 1];
     memcpy(p, payload, length);
     p[length] = NULL;
     String message(p);
-    Serial.println(message);
-    delay(1000);
+    Serial.write(payload, length);
+    Serial.println(topic);
 }
 
 void setup() {
     Serial.begin(115200);
-    client.init(callback);
+    while (client.connect()) {
+        client.getValueSubscribe("23002e000551343530343432","temperature");
+    }
 }
 
 void loop() {
