@@ -129,6 +129,7 @@ You also use "setDataSourceLabel" function to set the data source name, where th
 #define TOKEN "Your_Token_Here"  // Add here your Ubidots TOKEN
 #define VARIABLE_IDENTIFIER_ONE "humidity" // Add a variable identifier, it must be in lowercase
 #define VARIABLE_IDENTIFIER_TWO "temperature" // Add a variable identifier, it must be in lowercase
+#define DATA_SOURCE_NAME "My_beautiful_device"
 
 void callback(char* topic, byte* payload, unsigned int length);
 
@@ -146,7 +147,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setup() {
     Serial.begin(115200);
     while (client.connect());
-    client.setDataSourceLabel("My_device");
+    client.setDataSourceLabel(DATA_SOURCE_NAME);
 }
 
 void loop() {
