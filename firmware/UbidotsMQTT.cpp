@@ -31,6 +31,16 @@ Made by Mateo Velez - Metavix for Ubidots Inc
 #include "application.h"
 #endif
 
+void callback(char* topic, byte* payload, unsigned int length) {
+    char p[length + 1];
+    memcpy(p, payload, length);
+    p[length] = NULL;
+    String message(p);
+    Serial.write(payload, length);
+    Serial.println(topic);
+    delay(3000);
+}
+
 // ------------------------------------------------------------
 // -----------------Ubidots Fucntions added--------------------.
 // ------------------------------------------------------------
@@ -44,32 +54,27 @@ Ubidots::Ubidots(char* token, char* server) {
     _pId = new char[str.length() + 1];
     strcpy(_pId, str.c_str());
 }
-bool Ubidots::init(void (*function)(char*, uint8_t*, unsigned int)) {
-    callback = function;
-    _broker.connect(_pId, _token, "");
+bool Ubidots::connect() {
+    return _broker.connect(_pId, _token, NULL);
 }
 bool Ubidots::getValueSubscribe(char* labelDataSource, char* labelVariable) {
-    char *topic = (char*)malloc(100);
+    char topic[250];
     sprintf(topic, "/v1.6/devices/%s/%s/lv", labelDataSource, labelVariable);
     int timeout = 0;
-    if (_broker.isConnected()) {
-        _broker.subscribe(topic);
+    if (_broker.subscribe(topic)) {
+        delay(10);
+        return true;
     } else {
-        while (!_broker.connect(_pId, _token, "")) {
-            timeout++;
-            delay(1);
-            if (timeout > 5000)
-                Serial.println("Connection problems");
-            free(topic);
-            return false;
-        }
+        connect();
+        delay(10);
+        _broker.subscribe(topic);
+        delay(10);
+        return false;
     }
-    free(topic);
-    return true;
 }
 bool Ubidots::sendValues() {
-    char *topic = (char*)malloc(50);
-    char *payload = (char*)malloc(512);
+    char topic[100];
+    char payload[700];
     uint8_t i = 0;
     sprintf(topic, "%s%s", FIRST_PART_TOPIC, _pId);
     sprintf(payload, "{");
@@ -90,24 +95,20 @@ bool Ubidots::sendValues() {
             sprintf(payload, "%s, ", payload);
         }
     }
-    sprintf(payload, "}");
-    int timeout = 0;
-    if (_broker.isConnected()) {
-        _broker.publish(topic, payload);
+    sprintf(payload, "%s}", payload);
+    delay(10);
+    if (_broker.publish(topic, payload)) {
+        currentValue = 0;
+        delay(10);
+        return true;
     } else {
-        while (!_broker.connect(_pId, _token, "")) {
-            timeout++;
-            delay(1);
-            if (timeout > 5000)
-                Serial.println("Connection problems");
-            free(topic);
-            free(payload);
-            return false;
-        }
+        connect();
+        delay(10);
+        _broker.publish(topic, payload);
+        delay(10);
+        currentValue = 0;
+        return false;
     }
-    free(topic);
-    free(payload);
-    return true;
 }
 bool Ubidots::add(char* label, float value) {
     return add(label, value, NULL, NULL);
@@ -126,3 +127,13 @@ bool Ubidots::add(char* label, float value, char* context, double timestamp) {
         currentValue = MAX_VALUES;
     }
 }
+bool Ubidots::loop() {
+    if (_broker.loop()) {
+        return true;
+    } else {
+        connect();
+        _broker.loop();
+        return false;
+    }
+}
+

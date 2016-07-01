@@ -30,17 +30,18 @@ Made by Mateo Velez - Metavix for Ubidots Inc
 
 #if defined(SPARK) || (PLATFORM_ID==88)
 #include "spark_wiring_string.h"
+#include "application.h"
 #include "spark_wiring_tcpclient.h"
 #include "spark_wiring_usbserial.h"
 #elif defined(ARDUINO)
 #include "Client.h"
+#include "Arduino.h"
 #endif
 
 #define MQTT_PORT 1883
 #define SERVER "things.ubidots.com"
 #define MAX_VALUES 5
 #define FIRST_PART_TOPIC "/v1.6/devices/"
-
 
 typedef struct Value {
     char  *labelName;
@@ -49,11 +50,11 @@ typedef struct Value {
     float value;
 } Value;
 
+void callback(char* topic, byte* payload, unsigned int length);
 
 class Ubidots {
  private:
     MQTT _broker = MQTT(SERVER, MQTT_PORT, callback);
-    void (*callback)(char*, uint8_t*, unsigned int);
     uint8_t currentValue;
     char* _server;
     char* _token;
@@ -63,9 +64,10 @@ class Ubidots {
 
  public:
     Ubidots(char* token, char* server = SERVER);
+    bool loop();
     bool sendValues();
     bool getValueSubscribe(char* labelDataSource, char* labelVariable);
-    bool init(void (*function)(char*, uint8_t*, unsigned int));
+    bool connect();
     bool add(char* label, float value);
     bool add(char* label, float value, char* context);
     bool add(char* label, float value, char* context, double timestam);
