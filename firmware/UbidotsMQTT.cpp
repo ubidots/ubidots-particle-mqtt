@@ -50,7 +50,7 @@ Ubidots::Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), cha
 }
 bool Ubidots::connect() {
    
-   return _broker.connect(_pId, _token, "");
+   return _broker.connect(_pId, _token, NULL);
 }
 bool Ubidots::getValueSubscribe(char* labelDataSource, char* labelVariable) {
     char topic[250];
@@ -93,7 +93,6 @@ bool Ubidots::sendValues() {
     sprintf(payload, "%s}", payload);
     delay(10);
     if (_broker.publish(topic, payload)) {
-        
         currentValue = 0;
         delay(10);
         return true;
@@ -105,7 +104,6 @@ bool Ubidots::sendValues() {
         currentValue = 0;
         return false;
     }
-    
 }
 bool Ubidots::add(char* label, float value) {
     return add(label, value, NULL, NULL);
@@ -125,12 +123,13 @@ bool Ubidots::add(char* label, float value, char* context, double timestamp) {
     }
 }
 bool Ubidots::loop() {
-    if (_broker.loop()){
-        Serial.println("Helllooooooooooooo");
+    if (_broker.loop()) {
+        delay(10);
     } else {
         connect();
+        delay(10);
         _broker.loop();
-        
+        delay(10);
     }
 }
 
