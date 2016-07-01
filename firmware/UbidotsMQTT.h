@@ -65,6 +65,7 @@ class Ubidots {
  public:
     Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), char* server = SERVER);
     bool loop();
+    void setDataSourceLabel(char* dataSourceLabel);
     bool sendValues();
     bool getValueSubscribe(char* labelDataSource, char* labelVariable);
     bool connect();

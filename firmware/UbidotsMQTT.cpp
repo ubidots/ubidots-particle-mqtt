@@ -48,6 +48,9 @@ Ubidots::Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), cha
     strcpy(_pId, str.c_str());
     _broker = MQTT(SERVER, MQTT_PORT, callback);
 }
+void Ubidots::setDataSourceLabel(char* dataSourceLabel) {
+    _pId = dataSourceLabel;
+}
 bool Ubidots::connect() {
    
    return _broker.connect(_pId, _token, NULL);
@@ -93,6 +96,7 @@ bool Ubidots::sendValues() {
     sprintf(payload, "%s}", payload);
     delay(10);
     if (_broker.publish(topic, payload)) {
+        
         currentValue = 0;
         delay(10);
         return true;
@@ -104,6 +108,7 @@ bool Ubidots::sendValues() {
         currentValue = 0;
         return false;
     }
+    
 }
 bool Ubidots::add(char* label, float value) {
     return add(label, value, NULL, NULL);
@@ -123,7 +128,7 @@ bool Ubidots::add(char* label, float value, char* context, double timestamp) {
     }
 }
 bool Ubidots::loop() {
-    if (_broker.loop()) {
+    if (_broker.loop()){
         delay(10);
     } else {
         connect();
