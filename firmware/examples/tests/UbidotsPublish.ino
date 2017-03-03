@@ -44,9 +44,12 @@ Ubidots client(TOKEN, CLIENT_ID, callback);
 
 void setup() {
     Serial.begin(115200);
+    //MQTT clientM = MQTT("things.ubidots.com", 1883, callback, 512);
+    //clientM.connect("aschcini32esdwws", "p4uuT2OIIFJwv7ncTVfoVqcfImwRQW", NULL);
 }
 
 void loop() {
+    client.connect();
     float value_one = analogRead(A0);
     float value_two = analogRead(A1);
     client.add(VARIABLE_LABEL, value_one);

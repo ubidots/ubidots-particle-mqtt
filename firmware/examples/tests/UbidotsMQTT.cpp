@@ -26,7 +26,7 @@ Made by: José García -- Developer at Ubidots Inc
 Ubidots::Ubidots(char* token, char* clientName, void (*callback)(char*,uint8_t*,unsigned int)){
     this->callback = callback;
     _server = SERVER;
-    _client = MQTT(_server, MQTT_PORT, callback, BUFFER_SIZE);
+    _client = new MQTT(_server, MQTT_PORT, callback, BUFFER_SIZE);
     _token = token;
     _clientName = clientName;
     _currentValue = 0;
@@ -53,10 +53,15 @@ bool Ubidots::add(char* variableLabel, float value, char* context, long timestam
     }
 }
 
+bool Ubidots::connect(){
+    return _client->connect("aschcini32esdwws", "p4uuT2OIIFJwv7ncTVfoVqcfImwRQW", NULL);
+}
+
 bool Ubidots::publish(char* deviceLabel){
     char payload[BUFFER_SIZE];
+    char topic[150];
     sprintf(payload, "{");
-
+    sprintf(topic, "%s%s", FIRST_PART_TOPIC, deviceLabel);
     for(uint i=0; i<=_currentValue;){  
         sprintf(payload, "%s\"%s\":{\"value\":%f", payload, (val+i)->_variableLabel, (val+i)->_value);
         i++;
@@ -70,6 +75,9 @@ bool Ubidots::publish(char* deviceLabel){
 
     Serial.println("payload: ");
     Serial.println(payload);
+    Serial.println("topic");
+    Serial.println(topic);
+    _client->publish(topic, payload);
     _currentValue=0;
     return true;
 }

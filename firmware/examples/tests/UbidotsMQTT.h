@@ -27,6 +27,7 @@ Made by: Jose García -- Developer at Ubidots Inc
 #include "MQTT.h"
 #include "application.h"
 
+#define FIRST_PART_TOPIC "/v1.6/devices/"
 #define MQTT_PORT 1883
 #define SERVER "things.ubidots.com"
 #define BUFFER_SIZE 512
@@ -45,7 +46,7 @@ class Ubidots {
 
  private:
     void (*callback)(char*,uint8_t*,unsigned int);
-    MQTT _client;
+    MQTT *_client;
     char* _clientName;
     char* _server;
     char* _token;
@@ -57,6 +58,7 @@ class Ubidots {
     bool add(char* variableLabel, float value);
     bool add(char* variableLabel, float value, char* context);
     bool add(char* variableLabel, float value, char* context, long timestamp);
+    bool connect();
     bool publish(char* deviceLabel);
 };
 
