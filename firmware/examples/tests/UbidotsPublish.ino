@@ -4,30 +4,31 @@
 
 #include "UbidotsMQTT.h"
 
-
 /****************************************
  * Define Constants
  ****************************************/
 
-#define TOKEN "p4uuT2OIIFJwv7ncTVfoVqcfImwRQW"  // Add here your Ubidots TOKEN
-#define DEVICE_LABEL "test-device"
-#define VARIABLE_LABEL "test-var"
-#define CLIENT_ID "awu7WSAcl912" //Random ASCII
+#ifndef TOKEN
+#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#endif
 
 
 /****************************************
  * Auxiliar Functions
  ****************************************/
 
-void callback(char* topic, byte* payload, unsigned int length);
-
 void callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-    Serial.write(payload, length);
-    Serial.println(topic);
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    Serial.println("payload obtained from server:");
+    for (int i=0;i<length;i++) {
+        Serial.print((char)payload[i]); // prints the answer of the broker for debug purpose
+    }
+    // Some stuff to make with the payload obtained
+        //
+   //
+    Serial.println();
 }
 
 
@@ -35,8 +36,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
  * Instances
  ****************************************/
 
-Ubidots client(TOKEN, CLIENT_ID, callback);
-
+Ubidots client(TOKEN, callback);
 
 /****************************************
  * Main Functions
@@ -44,16 +44,31 @@ Ubidots client(TOKEN, CLIENT_ID, callback);
 
 void setup() {
     Serial.begin(115200);
-    //MQTT clientM = MQTT("things.ubidots.com", 1883, callback, 512);
-    //clientM.connect("aschcini32esdwws", "p4uuT2OIIFJwv7ncTVfoVqcfImwRQW", NULL);
+    client.initialize();
+
+    // Uncomment this line if you have a business Ubidots account
+    //client.ubidotsSetBroker("business.api.ubidots.com");
+
+    if(client.isConnected()){
+        // Insert as first parameter the device to subscribe and as second the variable label
+        client.ubidotsSubscribe("device-to-subscribe", "water-level"); 
+    }
 }
 
 void loop() {
-    client.connect();
-    float value_one = analogRead(A0);
-    float value_two = analogRead(A1);
-    client.add(VARIABLE_LABEL, value_one);
-    client.add(VARIABLE_LABEL, value_one);
-    client.publish(DEVICE_LABEL);
-    delay(10000);
+    if(!client.isConnected()){
+        client.reconnect();
+        // Insert as first parameter the device to subscribe and as second the variable label
+        client.ubidotsSubscribe("device-to-subscribe", "water-level");
+    }
+
+    // Publish routine, if the device and variables are not created they will be created
+    float value = 1;
+    Serial.println("Sending value");
+    client.add("test-var", value);
+    client.ubidotsPublish("test-device");
+
+    // Client loop for publishing and to maintain the connection
+    client.loop();
+    delay(1000);
 }

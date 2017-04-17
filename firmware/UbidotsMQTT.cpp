@@ -20,7 +20,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Made by Mateo Velez - Metavix for Ubidots Inc
+Made by: Jose García -- Developer at Ubidots Inc
 
 */
 #include "UbidotsMQTT.h"
@@ -31,105 +31,130 @@ Made by Mateo Velez - Metavix for Ubidots Inc
 #include "application.h"
 #endif
 
-Ubidots::Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int), char* server) {
-    _server = server;
+
+Ubidots::Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int)){
     this->callback = callback;
+    _server = SERVER;
     _token = token;
-    _dsName = "Particle";
-    currentValue = 0;
+    _currentValue = 0;
     val = (Value *)malloc(MAX_VALUES*sizeof(Value));
-    String str = Particle.deviceID();
-    _pId = new char[str.length() + 1];
-    strcpy(_pId, str.c_str());
-    _broker = MQTT(SERVER, MQTT_PORT, callback);
 }
-void Ubidots::setDataSourceLabel(char* dataSourceLabel) {
-    _pId = dataSourceLabel;
+
+
+void Ubidots::add(char* variableLabel, float value){
+    add(variableLabel, value, NULL, NULL);
 }
-bool Ubidots::connect() {
-   
-   return _broker.connect(_pId, _token, NULL);
+
+
+void Ubidots::add(char* variableLabel, float value, char *context){
+    add(variableLabel, value, context, NULL);
 }
-bool Ubidots::getValueSubscribe(char* labelDataSource, char* labelVariable) {
-    char topic[250];
-    sprintf(topic, "/v1.6/devices/%s/%s/lv", labelDataSource, labelVariable);
-    int timeout = 0;
-    if (_broker.subscribe(topic)) {
-        delay(10);
-        return true;
-    } else {
-        connect();
-        delay(10);
-        _broker.subscribe(topic);
-        delay(10);
-        return false;
-    }
-}
-bool Ubidots::sendValues() {
-    char topic[100];
-    char payload[700];
-    uint8_t i = 0;
-    sprintf(topic, "%s%s", FIRST_PART_TOPIC, _pId);
-    sprintf(payload, "{");
-    // {"temperature":{"value": 10, "timestamp":1464661369000}, "humidity": 50}
-    while (i < currentValue) {
-        sprintf(payload, "%s\"%s\":{\"value\":%f", payload, (val+i)->labelName, (val+i)->value);
-        if ((val+i)->timestamp != NULL) {
-            sprintf(payload, "%s, \"timestamp\":%f", payload, (val+i)->timestamp);
-        }
-        if ((val+i)->context != NULL) {
-            sprintf(payload, "%s, \"context\":{%s}", payload, (val+i)->context);
-        }
-        sprintf(payload, "%s}", payload);
-        i++;
-        if (i >= currentValue) {
-            break;
-        } else {
-            sprintf(payload, "%s, ", payload);
-        }
-    }
-    sprintf(payload, "%s}", payload);
-    delay(10);
-    if (_broker.publish(topic, payload)) {
-        
-        currentValue = 0;
-        delay(10);
-        return true;
-    } else {
-        connect();
-        delay(10);
-        _broker.publish(topic, payload);
-        delay(10);
-        currentValue = 0;
-        return false;
-    }
-    
-}
-bool Ubidots::add(char* label, float value) {
-    return add(label, value, NULL, NULL);
-}
-bool Ubidots::add(char* label, float value, char* context) {
-    return add(label, value, context, NULL);
-}
-bool Ubidots::add(char* label, float value, char* context, double timestamp) {
-    (val+currentValue)->labelName = label;
-    (val+currentValue)->value = value;
-    (val+currentValue)->context = context;
-    (val+currentValue)->timestamp = timestamp;
-    currentValue++;
-    if (currentValue > MAX_VALUES) {
-        Serial.println(F("You are sending more than the maximum of consecutive variables"));
-        currentValue = MAX_VALUES;
-    }
-}
-bool Ubidots::loop() {
-    if (_broker.loop()){
-        delay(10);
-    } else {
-        connect();
-        delay(10);
-        _broker.loop();
-        delay(10);
+
+
+void Ubidots::add(char* variableLabel, float value, char *context, unsigned long timestamp){
+    (val+_currentValue)->_variableLabel = variableLabel;
+    (val+_currentValue)->_value = value;
+    (val+_currentValue)->_context = context;
+    (val+_currentValue)->_timestamp = timestamp;
+    _currentValue++;
+    if (_currentValue > MAX_VALUES) {
+        Serial.println(F("You are adding more than the maximum of the allowed consecutive variables"));
+        _currentValue = MAX_VALUES;
     }
 }
 
+
+bool Ubidots::isConnected(){
+    return _client->isConnected();
+}
+
+
+bool Ubidots::connect(){
+    bool connected = false;
+    if(!_client->isConnected()){
+        connected = reconnect();
+    }
+    return connected;
+}
+
+
+void Ubidots::initialize(){
+    this->_client = new MQTT(_server, 1883, this->callback, 512);
+    _clientName = System.deviceID();
+    _client->connect(_clientName, _token, NULL);
+    bool connected = _client->isConnected();
+    if(connected){
+        Serial.println("connected to broker");
+    }
+}
+
+
+bool Ubidots::loop(){
+    return _client->loop();
+}
+
+bool Ubidots::reconnect(){
+    if(!_client->isConnected()){
+        Serial.println("attemping to connect");
+    }
+    while(!_client->isConnected()){
+        _client->connect(_clientName, _token, NULL);
+        Serial.print(".");
+        delay(1000);
+    }
+    return true;
+}
+
+
+bool Ubidots::ubidotsPublish(char* device){
+    char topic[150];
+    char payload[500];
+    String str;
+    sprintf(topic, "%s%s", FIRST_PART_TOPIC, device);
+    sprintf(payload, "{");
+    for (int i = 0; i <= _currentValue; ) {
+        str = String((val+i)->_value, 2);
+        sprintf(payload, "%s\"%s\": [{\"value\": %s", payload, (val+i)->_variableLabel, str.c_str());
+        if ((val+i)->_timestamp != NULL) {
+            sprintf(payload, "%s, \"timestamp\": %lu", payload, (val+i)->_timestamp);
+        }
+        if ((val+i)->_context != NULL) {
+            sprintf(payload, "%s, \"context\": {%s}", payload, (val+i)->_context);
+        }
+        i++;
+        if (i >= _currentValue) {
+            sprintf(payload, "%s}]}", payload);
+            break;
+        } else {
+            sprintf(payload, "%s}], ", payload);
+        }
+    }
+    if (_debug){
+        Serial.println("publishing to TOPIC: ");
+        Serial.println(topic);
+        Serial.print("JSON dict: ");
+        Serial.println(payload);
+    }
+    _currentValue = 0;
+    return _client->publish(topic, payload);
+}
+
+
+bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
+    char topic[150];
+    sprintf(topic, "%s%s/%s/lv", FIRST_PART_TOPIC, deviceLabel, variableLabel);
+    if (_debug){
+        Serial.println("Subscribing to: ");
+        Serial.println(topic);
+    }
+    return _client->subscribe(topic);
+}
+
+
+void Ubidots::ubidotsSetBroker(char* broker){
+    if (_debug){
+        Serial.print("setting broker to: ");
+        Serial.print(broker);
+    }
+    _server = broker;
+}

@@ -1,36 +1,68 @@
-// This #include statement was automatically added by the Particle IDE.
+/****************************************
+ * Include Libraries
+ ****************************************/
+
 #include "MQTT/MQTT.h"
-
-// This #include statement was automatically added by the Particle IDE.
 #include "UbidotsMQTT.h"
-#define TOKEN "Your_Token_Here"  // Add here your Ubidots TOKEN
-#define VARIABLE_IDENTIFIER_ONE "humidity" // Add a variable identifier, it must be in lowercase
-#define VARIABLE_IDENTIFIER_TWO "temperature" // Add a variable identifier, it must be in lowercase
-#define DATA_SOURCE_NAME "My_beautiful_device"
 
-void callback(char* topic, byte* payload, unsigned int length);
+/****************************************
+ * Define Constants
+ ****************************************/
+
+#ifndef TOKEN
+#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#endif
+
+
+/****************************************
+ * Auxiliar Functions
+ ****************************************/
+
+void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    Serial.println("payload obtained from server:");
+    for (int i=0;i<length;i++) {
+        Serial.print((char)payload[i]); // prints the answer of the broker for debug purpose
+    }
+    // Some stuff to make with the payload obtained
+        //
+   //
+    Serial.println();
+}
+
+
+/****************************************
+ * Instances
+ ****************************************/
 
 Ubidots client(TOKEN, callback);
 
-void callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-    Serial.write(payload, length);
-    Serial.println(topic);
-}
+/****************************************
+ * Main Functions
+ ****************************************/
 
 void setup() {
     Serial.begin(115200);
-    while (client.connect());
-    client.setDataSourceLabel(DATA_SOURCE_NAME);
+    client.initialize();
+
+    // Uncomment this line if you have a business Ubidots account
+    //client.ubidotsSetBroker("business.api.ubidots.com");
 }
 
 void loop() {
-    float value_one = analogRead(A0);
-    float value_two = analogRead(A1);
-    client.add(VARIABLE_IDENTIFIER_ONE, value_one);
-    client.add(VARIABLE_IDENTIFIER_TWO, value_two);
-    client.sendValues();
+    if(!client.isConnected()){
+        client.reconnect();
+    }
+
+    // Publish routine, if the device and variables are not created they will be created
+    float value = 1;
+    Serial.println("Sending value");
+    client.add("test-var", value); // Insert as firs parameter your variable label
+    client.ubidotsPublish("test-device"); // Insert your device label-
+
+    // Client loop for publishing and to maintain the connection
+    client.loop();
+    delay(1000);
 }

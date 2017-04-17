@@ -118,7 +118,7 @@ private:
     bool write(uint8_t header, uint8_t* buf, uint16_t length);
     uint16_t writeString(const char* string, uint8_t* buf, uint16_t pos);
     String domain;
-    uint8_t *ip;
+    uint8_t *ip=NULL;
     uint16_t port;
     int keepalive;
     uint16_t maxpacketsize;
