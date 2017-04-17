@@ -2,7 +2,6 @@
  * Include Libraries
  ****************************************/
 
-#include "MQTT/MQTT.h"
 #include "UbidotsMQTT.h"
 
 /****************************************
@@ -49,17 +48,20 @@ void setup() {
 
     // Uncomment this line if you have a business Ubidots account
     //client.ubidotsSetBroker("business.api.ubidots.com");
-
-    if(client.isConnected()){
-        // Insert as first parameter the device to subscribe and as second the variable label
-        client.ubidotsSubscribe("device-to-subscribe", "water-level"); 
-    }
 }
 
 void loop() {
     if(!client.isConnected()){
         client.reconnect();
     }
+
+    // Publish routine, if the device and variables are not created they will be created
+    float value = 1;
+    Serial.println("Sending value");
+    client.add("test-var-1", value); // Insert as first parameter your variable label
+    client.add("test-var-2", value, "\"lat\":10.302, \"lng\":2.9384"); //Adds value with context
+    client.add("test-var-3", value, NULL, 1492445109); // Adds value with custom timestamp
+    client.ubidotsPublish("test-device"); // Insert your device label where the values will be stored in Ubidots
 
     // Client loop for publishing and to maintain the connection
     client.loop();

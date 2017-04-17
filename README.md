@@ -1,6 +1,6 @@
 # Ubidots MQTT library for Paritcle Devices
 
-This library connects to is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
+This library connects to is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. We had to make a small modification on line 121 to MQTT.h file, when you try to wrapp the library it seems that a memory allocation for ip address is not erased properly so to fix it the best way is to declare it NULL to avoid that it takes any random value. In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
 
 ## Requirements
 
@@ -215,7 +215,7 @@ void loop() {
     float value = 1;
     Serial.println("Sending value");
     client.add("test-var-1", value); // Insert as first parameter your variable label
-    client.add("test-var-2, value, "\"lat\":10.302, \"lng\":2.9384"); //Adds value with context
+    client.add("test-var-2", value, "\"lat\":10.302, \"lng\":2.9384"); //Adds value with context
     client.add("test-var-3", value, NULL, 1492445109); // Adds value with custom timestamp
     client.ubidotsPublish("test-device"); // Insert your device label where the values will be stored in Ubidots
 

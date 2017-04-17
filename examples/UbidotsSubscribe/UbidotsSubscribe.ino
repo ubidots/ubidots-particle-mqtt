@@ -59,14 +59,8 @@ void loop() {
     if(!client.isConnected()){
         client.reconnect();
         // Insert as first parameter the device to subscribe and as second the variable label
-        client.ubidotsSubscribe("device-to-subscribe", "water-level");
+        client.ubidotsSubscribe("device-to-subscribe", "water-level"); 
     }
-
-    // Publish routine, if the device and variables are not created they will be created
-    float value = 1;
-    Serial.println("Sending value");
-    client.add("test-var", value);
-    client.ubidotsPublish("test-device");
 
     // Client loop for publishing and to maintain the connection
     client.loop();
