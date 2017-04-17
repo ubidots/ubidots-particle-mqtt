@@ -24,7 +24,7 @@ Made by: Jose García -- Developer at Ubidots Inc
 #ifndef UbidotsMQTT_H
 #define UbidotsMQTT_H
 
-#include "MQTT/MQTT.h"
+#include "MQTT.h"
 #include "application.h"
 
 #define FIRST_PART_TOPIC "/v1.6/devices/"

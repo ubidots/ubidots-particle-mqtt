@@ -2,7 +2,7 @@
  * Include Libraries
  ****************************************/
 
-#include "UbidotsMQTT.h"
+#include <Ubidots.h>
 
 /****************************************
  * Define Constants
