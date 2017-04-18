@@ -1,6 +1,8 @@
 # Ubidots MQTT library for Paritcle Devices
 
-This library connects to is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. We had to make a small modification on line 121 to MQTT.h file, when you try to wrapp the library it seems that a memory allocation for ip address is not erased properly so to fix it the best way is to declare it NULL to avoid that it takes any random value. In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
+This library connects to is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. We had to make a small modification on line 121 to MQTT.h file, when you try to wrapp the library it seems that a memory allocation for ip address is not erased properly so to fix it the best way is to declare it NULL to avoid that it takes any random value. Additionally, some define guards were added.
+
+In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
 
 ## Requirements
 

@@ -54,27 +54,62 @@ sample code bearing this copyright.
 
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
 // this size is total of [MQTT Header(Max:5byte) + Topic Name Length + Topic Name + Message ID(QoS1|2) + Payload]
+#ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 255
+#endif
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
+#ifndef MQTT_DEFAULT_KEEPALIVE
 #define MQTT_DEFAULT_KEEPALIVE 15
-
+#endif
+#ifndef MQTTPROTOCOLVERSION
 #define MQTTPROTOCOLVERSION 3
+#endif
+#ifndef MQTTCONNECT
 #define MQTTCONNECT     1 << 4  // Client request to connect to Server
+#endif
+#ifndef MQTTCONNACK
 #define MQTTCONNACK     2 << 4  // Connect Acknowledgment
+#endif
+#ifndef MQTTPUBLISH
 #define MQTTPUBLISH     3 << 4  // Publish message
+#endif
+#ifndef MQTTPUBACK
 #define MQTTPUBACK      4 << 4  // Publish Acknowledgment
+#endif
+#ifndef MQTTPUBREC
 #define MQTTPUBREC      5 << 4  // Publish Received (assured delivery part 1)
+#endif
+#ifndef MQTTPUBREL
 #define MQTTPUBREL      6 << 4  // Publish Release (assured delivery part 2)
+#endif
+#ifndef MQTTPUBCOMP
 #define MQTTPUBCOMP     7 << 4  // Publish Complete (assured delivery part 3)
+#endif
+#ifndef MQTTSUBSCRIBE
 #define MQTTSUBSCRIBE   8 << 4  // Client Subscribe request
+#endif
+#ifndef MQTTSUBACK
 #define MQTTSUBACK      9 << 4  // Subscribe Acknowledgment
+#endif
+#ifndef MQTTUNSUBSCRIBE
 #define MQTTUNSUBSCRIBE 10 << 4 // Client Unsubscribe request
+#endif
+#ifndef MQTTUNSUBACK
 #define MQTTUNSUBACK    11 << 4 // Unsubscribe Acknowledgment
+#endif
+#ifndef MQTTPINGREQ
 #define MQTTPINGREQ     12 << 4 // PING Request
+#endif
+#ifndef MQTTPINGRESP
 #define MQTTPINGRESP    13 << 4 // PING Response
+#endif
+#ifndef MQTTDISCONNECT
 #define MQTTDISCONNECT  14 << 4 // Client is Disconnecting
+#endif
+#ifndef MQTTReserved
 #define MQTTReserved    15 << 4 // Reserved
+#endif
 
 
 // for debugging.

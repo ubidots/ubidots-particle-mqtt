@@ -1,14 +1,29 @@
 #include "MQTT.h"
 #include "application.h"
 
+#ifndef LOGGING
 #define LOGGING
+#endif
 
+#ifndef MQTTQOS0_HEADER_MASK
 #define MQTTQOS0_HEADER_MASK        (0 << 1)
-#define MQTTQOS1_HEADER_MASK        (1 << 1)
-#define MQTTQOS2_HEADER_MASK        (2 << 1)
+#endif
 
+#ifndef MQTTQOS1_HEADER_MASK
+#define MQTTQOS1_HEADER_MASK        (1 << 1)
+#endif
+
+#ifndef MQTTQOS2_HEADER_MASK
+#define MQTTQOS2_HEADER_MASK        (2 << 1)
+#endif
+
+#ifndef DUP_FLAG_OFF_MASK
 #define DUP_FLAG_OFF_MASK           (0<<3)
+#endif
+
+#ifndef DUP_FLAG_ON_MASK
 #define DUP_FLAG_ON_MASK            (1<<3)
+#endif
 
 MQTT::MQTT() {
     this->ip = NULL;
