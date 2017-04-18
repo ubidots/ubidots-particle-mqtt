@@ -1,7 +1,0 @@
-{
-"name": "UbidotsMQTT",
-"version": "1.0.0",
-"author": "Ubidots <devel@ubidots.com>",
-"license": "MIT",
-"description": "Ubidots MQTT library for Particle, it need MQTT library"
-}

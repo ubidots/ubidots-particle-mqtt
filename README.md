@@ -1,6 +1,8 @@
 # Ubidots MQTT library for Paritcle Devices
 
-This library connects to Ubidots' MQTT broker using the MQTT library of hirotakaster. In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
+This library connects to is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. We had to make a small modification on line 121 to MQTT.h file, when you try to wrapp the library it seems that a memory allocation for ip address is not erased properly so to fix it the best way is to declare it NULL to avoid that it takes any random value. Additionally, some define guards were added.
+
+In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
 
 ## Requirements
 
@@ -27,86 +29,200 @@ This library connects to Ubidots' MQTT broker using the MQTT library of hirotaka
     * Click on **INCLUDE IN APP**. And return to "MYAPP.ino"
     * Do the same to add hirotakaster's MQTT library.
 
-## Subscribe to a variable
+# Methods Available
 
-To subscribe to a variable, you need to specify the label of the data source and the label of your variable. The incoming value will be saved in the "message" variable of callback function.
+### Ubidots Constructor
+```
+Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int))
+```
+> Creates an Ubidots instance, you must setup as input your Ubidots TOKEN and the callback function. Keep in mind that the callback function must be declared even if you don't need to subscribe to any variable, so this line should go always in your scripts:
 
 ```cpp
-// This #include statement was automatically added by the Particle IDE.
-#include "MQTT/MQTT.h"
-
-// This #include statement was automatically added by the Particle IDE.
-#include "UbidotsMQTT.h"
-#define TOKEN "Your_Token_Here"  // Add here your Ubidots TOKEN
-#define DATA_SOURCE_IDENTIFIER "my-particle-device" // The unique data source label. No commas, spaces or special characters are allowed.
-#define VARIABLE_IDENTIFIER "temperature" // A unique variable label. No commas, spaces or special characters are allowed.
-
 void callback(char* topic, byte* payload, unsigned int length);
+```
+### add
+```
+add(char* variableLabel, float value, char *context, char *timestamp);
+```
+> Add a variable with a value, context and timestamp to be sent to a certain data source, once you use add() you can publish your variable using the ubidotsPublish() method. You can add 5 variables maximum before of publish them. Context and timestamp are optionals.
+## connect
+```
+connect();
+```
+> Tries to connect to the broker
+## initialize
+```
+initialize();
+```
+> Creates the proper credentials to connect to Ubidots' broker
+## loop
+```
+loop();
+```
+> Infinite loop for MQTT connection, insert it at the end of your routine
+## ubidotsPublish
+```
+ubidotsPublish();
+```
+> Publish the values added using the add() method
+## ubidotsSetBroker
+```
+ubidotsSetBroker(char* broker);
+```
+> Sets the broker properly for publish and subscribe to Ubidots accounts. If your account if a business one, set "business.api.ubidots.com" or the endpoint provided by Ubidots as your broker, see examples for more information.
+By default, broker will be set to publish and subscribe to free educational version accounts with broker "things.ubidots.com".
+## ubidotsSubscribe
+```
+ubidotsSubscribe(char* deviceLabel, char* variableLabel);
+```
+> Subscribe to the specified device label and variable label of your Ubidots account.
+
+# Examples
+## Subscribe to a variable
+
+To subscribe to a variable, you need to specify your device and variable lables as input arguments for the ubidotsSubscribe() function. The incoming value will be returned by the MQTT library in the payload variable, by default the subscribed function only gets the last value of the variable subscribed. Retain value feature is only available for business users.
+
+```cpp
+/****************************************
+ * Include Libraries
+ ****************************************/
+
+#include "UbidotsMQTT.h"
+
+/****************************************
+ * Define Constants
+ ****************************************/
+
+#ifndef TOKEN
+#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#endif
+
+
+/****************************************
+ * Auxiliar Functions
+ ****************************************/
+
+void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    Serial.println("payload obtained from server:");
+    for (int i=0;i<length;i++) {
+        Serial.print((char)payload[i]); // prints the answer of the broker for debug purpose
+    }
+    // Some stuff to make with the payload obtained
+        //
+   //
+    Serial.println();
+}
+
+/****************************************
+ * Instances
+ ****************************************/
 
 Ubidots client(TOKEN, callback);
 
-void callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-    Serial.write(payload, length);
-    Serial.println(topic);
-}
+/****************************************
+ * Main Functions
+ ****************************************/
 
 void setup() {
     Serial.begin(115200);
-    while (client.connect()) {
-        client.getValueSubscribe(DATA_SOURCE_IDENTIFIER, VARIABLE_IDENTIFIER);
+    client.initialize();
+
+    // Uncomment this line if you have a business Ubidots account
+    //client.ubidotsSetBroker("business.api.ubidots.com");
+
+    if(client.isConnected()){
+        // Insert as first parameter the device to subscribe and as second the variable label
+        client.ubidotsSubscribe("device-to-subscribe", "water-level"); 
     }
 }
 
 void loop() {
+    if(!client.isConnected()){
+        client.reconnect();
+    }
+
+    // Client loop for publishing and to maintain the connection
     client.loop();
+    delay(1000);
 }
+
 ```
 
 ## Publish values to a device
 
-To publish values to a Ubidots data source:
+To publish values to Ubidots, you have to call first the add() function first for storing the values to send (max of 5 values per request), so insert as parameters for the add() function the variable label, the context and the timestamp (these last two are optionals):
 
 ```cpp
-// This #include statement was automatically added by the Particle IDE.
-#include "MQTT/MQTT.h"
+/****************************************
+ * Include Libraries
+ ****************************************/
 
-// This #include statement was automatically added by the Particle IDE.
 #include "UbidotsMQTT.h"
-#define TOKEN "Your_Token_Here"  // Add here your Ubidots TOKEN
-#define VARIABLE_ONE "humidity" // A variable identifier, in lowercase without spaces, commas or special characters
-#define VARIABLE_TWO "temperature" // A variable identifier, in lowercase without spaces, commas or special characters
-#define DATA_SOURCE_NAME "My_particle_device" // A unique identifier for your data source, in lowercase without spaces, commas or special characters
 
-void callback(char* topic, byte* payload, unsigned int length);
+/****************************************
+ * Define Constants
+ ****************************************/
+
+#ifndef TOKEN
+#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#endif
+
+
+/****************************************
+ * Auxiliar Functions
+ ****************************************/
+
+void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    Serial.println("payload obtained from server:");
+    for (int i=0;i<length;i++) {
+        Serial.print((char)payload[i]); // prints the answer of the broker for debug purpose
+    }
+    // Some stuff to make with the payload obtained
+        //
+   //
+    Serial.println();
+}
+
+
+/****************************************
+ * Instances
+ ****************************************/
 
 Ubidots client(TOKEN, callback);
 
-void callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-    Serial.write(payload, length);
-    Serial.println(topic);
-}
+/****************************************
+ * Main Functions
+ ****************************************/
 
 void setup() {
     Serial.begin(115200);
-    while (client.connect());
-    client.setDataSourceLabel(DATA_SOURCE_NAME);
+    client.initialize();
+
+    // Uncomment this line if you have a business Ubidots account
+    //client.ubidotsSetBroker("business.api.ubidots.com");
 }
 
 void loop() {
-    float value_one = analogRead(A0);
-    float value_two = analogRead(A1);
-    client.add(VARIABLE_ONE, value_one);
-    client.add(VARIABLE_TWO, value_two);
-    client.sendValues();
+    if(!client.isConnected()){
+        client.reconnect();
+    }
+
+    // Publish routine, if the device and variables are not created they will be created
+    float value = 1;
+    Serial.println("Sending value");
+    client.add("test-var-1", value); // Insert as first parameter your variable label
+    client.add("test-var-2", value, "\"lat\":10.302, \"lng\":2.9384"); //Adds value with context
+    client.add("test-var-3", value, NULL, 1492445109); // Adds value with custom timestamp
+    client.ubidotsPublish("test-device"); // Insert your device label where the values will be stored in Ubidots
+
+    // Client loop for publishing and to maintain the connection
+    client.loop();
+    delay(1000);
 }
 ```
-
-If the function "setDataSourceLabel" is not used in the setup, then the data source will be named after Particle's device id.
