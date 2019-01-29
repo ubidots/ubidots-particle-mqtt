@@ -29,7 +29,6 @@ Made by: Jose García -- Developer at Ubidots Inc
 
 #define FIRST_PART_TOPIC "/v1.6/devices/"
 #define MQTT_PORT 1883
-#define SERVER "things.ubidots.com"
 #define BUFFER_SIZE 512
 #define MAX_VALUES 5
 
@@ -66,7 +65,7 @@ class Ubidots {
   bool reconnect();
   bool ubidotsPublish(char *device);
   bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
-  void ubidotsSetBroker(char *broker);
+  void ubidotsSetBroker(char *broker, uint16_t port = 1883);
   void ubidotsSetDebug(bool debug);
 };
 

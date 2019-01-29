@@ -141,12 +141,11 @@ bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
   return _client->subscribe(topic);
 }
 
-void Ubidots::ubidotsSetBroker(char* broker) {
+void Ubidots::ubidotsSetBroker(char* broker, uint16_t port) {
   if (_debug) {
-    Serial.print("setting broker to: ");
-    Serial.print(broker);
+    Serial.printf("New settings:\nBroker Url: %s\nPort: %d", broker, port);
   }
-  _server = broker;
+  _client->setBroker(broker, port);
 }
 
 void Ubidots::ubidotsSetDebug(bool debug) { _debug = debug; }
