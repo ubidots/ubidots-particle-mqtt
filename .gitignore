@@ -30,3 +30,5 @@
 
 # Testing path
 test-developer/*
+lib/*
+.vscode/*
