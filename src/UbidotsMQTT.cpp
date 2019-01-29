@@ -1,6 +1,5 @@
 /*
-Copyright (c) 2013-2016 Ubidots.
-
+Copyright (c) 2013-2018 Ubidots.
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
@@ -8,10 +7,8 @@ without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
 the following conditions:
-
 The above copyright notice and this permission notice shall be
 included in all copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -20,15 +17,20 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Made by: Jose García -- Developer at Ubidots Inc
-
+Developed and maintained by Jose Garcia for IoT Services Inc
+@jotathebest at github: https://github.com/jotathebest
 */
+
 #include "UbidotsMQTT.h"
 
+/**************************************************************************
+ * Overloaded constructors
+ ***************************************************************************/
 Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   _server = "industrial.ubidots.com";
   _token = token;
   _currentValue = 0;
+  _current_context = 0;
   String deviceId = System.deviceID();
   _clientName = new char[deviceId.length() + 1];
   strcpy(_clientName, deviceId.c_str());
@@ -37,6 +39,20 @@ Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   this->_client = new MQTT(_server, 1883, this->callback, 512);
 }
 
+/***************************************************************************
+FUNCTIONS TO SEND DATA
+***************************************************************************/
+
+/*
+ * Add a value of variable to save
+ * @arg variable_label [Mandatory] variable label where the dot will be stored
+ * @arg value [Mandatory] Dot value
+ * @arg context [optional] Dot context to store. Default NULL
+ * @arg dot_timestamp_seconds [optional] Dot timestamp in seconds, usefull for
+ * datalogger. Default NULL
+ * @arg dot_timestamp_millis [optional] Dot timestamp in millis to add to
+ * dot_timestamp_seconds, usefull for datalogger.
+ */
 void Ubidots::add(char* variableLabel, float value) {
   add(variableLabel, value, NULL, NULL);
 }
@@ -66,54 +82,105 @@ void Ubidots::add(char* variableLabel, float value, char* context,
   }
 }
 
-bool Ubidots::isConnected() { return _client->isConnected(); }
+/*
+ * Sends data to Ubidots
+ * @arg device_label [Mandatory] device label where the dot will be stored
+ */
 
-bool Ubidots::connect(uint8_t maxRetries) {
-  bool connected = false;
-  _client->connect(_clientName, _token, NULL);
-  if (!_client->isConnected()) {
-    Serial.println("trying to connect to broker");
-    connected = _reconnect(maxRetries);
+bool Ubidots::ubidotsPublish(char* device_label) {
+  char topic[150];
+  sprintf(topic, "%s%s", FIRST_PART_TOPIC, device_label);
+  char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE);
+  _buildPayload(payload);
+
+  if (_debug) {
+    Serial.printlnf("publishing to TOPIC: %s\nJSON dict: %s", topic, payload);
   }
-
-  if (_debug && connected) {
-    Serial.println("connected");
-  }
-
-  return connected;
+  _currentValue = 0;
+  bool result = _client->publish(topic, payload);
+  free(payload);
+  return result;
 }
 
-bool Ubidots::loop() { return _client->loop(); }
+/***************************************************************************
+FUNCTIONS TO RETRIEVE DATA
+***************************************************************************/
 
-bool Ubidots::_reconnect(uint8_t maxRetries) {
-  uint8_t retries = 0;
-  while (!_client->isConnected()) {
-    _client->connect(_clientName, _token, NULL);
-    Serial.print(".");
+/*
+ * Sends data to Ubidots
+ * @arg device_label [Mandatory] device label to retrieve values from
+ * @arg variable_label [Mandatory] variable label to retrieve values from
+ */
+bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
+  char topic[150];
+  sprintf(topic, "%s%s/%s/lv", FIRST_PART_TOPIC, deviceLabel, variableLabel);
+  if (_debug) {
+    Serial.printlnf("Subscribing to: %s", topic);
+  }
+  return _client->subscribe(topic);
+}
 
-    // 255 is the max 8-bit integer value
-    if (maxRetries == retries || retries == 255) {
-      break;
+/***************************************************************************
+AUXILIAR FUNCTIONS
+***************************************************************************/
+
+/*
+ * Adds to the context structure values to retrieve later it easily by the user
+ */
+
+void Ubidots::addContext(char* key_label, char* key_value) {
+  (_context + _current_context)->key_label = key_label;
+  (_context + _current_context)->key_value = key_value;
+  _current_context++;
+  if (_current_context >= MAX_VALUES) {
+    Serial.println(
+        F("You are adding more than the maximum of consecutive key-values "
+          "pairs"));
+    _current_context = MAX_VALUES;
+  }
+}
+
+/*
+ * Retrieves the actual stored context properly formatted
+ */
+
+void Ubidots::getContext(char* context_result) {
+  // TCP context type
+  sprintf(context_result, "{");
+  for (uint8_t i = 0; i < _current_context;) {
+    sprintf(context_result, "%s%s:%s", context_result,
+            (_context + i)->key_label, (_context + i)->key_value);
+    i++;
+    if (i < _current_context) {
+      sprintf(context_result, "%s,", context_result);
+    } else {
+      sprintf(context_result, "%s}", context_result);
+      _current_context = 0;
     }
-
-    retries += 1;
-    delay(100);  // Waits 100 ms before of trying to open a new socket
   }
-  return _client->isConnected();
 }
+
+/**
+ * Builds the payload to send and saves it to the input char pointer.
+ * @payload [Mandatory] char payload pointer to store the built structure.
+ */
 
 void Ubidots::_buildPayload(char* payload) {
   sprintf(payload, "{");
   for (int i = 0; i <= _currentValue;) {
+    // Adds the variable label and the dot's value
     sprintf(payload, "%s\"%s\": [{\"value\": %f", payload,
             (dot + i)->_variableLabel, (dot + i)->_value);
 
+    // Adds the context
     if ((dot + i)->_context != NULL) {
       sprintf(payload, "%s, \"context\": {%s}", payload, (dot + i)->_context);
     }
 
+    // Adds the timestamp
     if ((dot + i)->_timestamp != NULL) {
       sprintf(payload, "%s,\"timestamp\":%lu", payload, (dot + i)->_timestamp);
+
       // Adds timestamp milliseconds
       if ((dot + i)->_timestampMillis != NULL) {
         char milliseconds[3];
@@ -138,30 +205,61 @@ void Ubidots::_buildPayload(char* payload) {
   }
 }
 
-bool Ubidots::ubidotsPublish(char* device) {
-  char topic[150];
-  sprintf(topic, "%s%s", FIRST_PART_TOPIC, device);
-  char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE);
-  _buildPayload(payload);
+/*
+ * Returns true if the device has a socket opened
+ */
+bool Ubidots::isConnected() { return _client->isConnected(); }
 
-  if (_debug) {
-    Serial.printlnf("publishing to TOPIC: %s\nJSON dict: %s", topic, payload);
+/*
+ * Opens a TCP socket to the broker
+ * @maxRetries [Optional] [default=0]: Maximum number of connection attempts
+ */
+bool Ubidots::connect(uint8_t maxRetries) {
+  bool connected = false;
+  _client->connect(_clientName, _token, NULL);
+  if (!_client->isConnected()) {
+    Serial.println("trying to connect to broker");
+    connected = _reconnect(maxRetries);
   }
-  _currentValue = 0;
-  bool result = _client->publish(topic, payload);
-  free(payload);
-  return result;
+
+  if (_debug && connected) {
+    Serial.println("connected");
+  }
+
+  return connected;
 }
 
-bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
-  char topic[150];
-  sprintf(topic, "%s%s/%s/lv", FIRST_PART_TOPIC, deviceLabel, variableLabel);
-  if (_debug) {
-    Serial.printlnf("Subscribing to: %s", topic);
+/*
+ * Attempts to open a TCP socket to the broker
+ * @maxRetries [Optional] [default=0]: Maximum number of connection attempts
+ */
+bool Ubidots::_reconnect(uint8_t maxRetries) {
+  uint8_t retries = 0;
+  while (!_client->isConnected()) {
+    _client->connect(_clientName, _token, NULL);
+    Serial.print(".");
+
+    // 255 is the max 8-bit integer value
+    if (maxRetries == retries || retries == 255) {
+      break;
+    }
+
+    retries += 1;
+    delay(100);  // Waits 100 ms before of trying to open a new socket
   }
-  return _client->subscribe(topic);
+  return _client->isConnected();
 }
 
+/*
+ * Returns the MQTT loop method necessary to maintain the TCP socket opened
+ */
+bool Ubidots::loop() { return _client->loop(); }
+
+/*
+ * Sets a new broker and port to connect with
+ * @broker [Mandatory]: Broker DNS
+ * @port [Optional] [Default=1883]: TCP port to use to open the socket
+ */
 void Ubidots::ubidotsSetBroker(char* broker, uint16_t port) {
   if (_debug) {
     Serial.printlnf("New settings:\nBroker Url: %s\nPort: %d", broker, port);
@@ -169,4 +267,7 @@ void Ubidots::ubidotsSetBroker(char* broker, uint16_t port) {
   _client->setBroker(broker, port);
 }
 
+/*
+  Makes debug messages available
+*/
 void Ubidots::ubidotsSetDebug(bool debug) { _debug = debug; }
