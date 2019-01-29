@@ -25,12 +25,6 @@ Made by: Jose García -- Developer at Ubidots Inc
 */
 #include "UbidotsMQTT.h"
 
-#if defined(ARDUINO)
-#include "Arduino.h"
-#elif defined(SPARK)
-#include "application.h"
-#endif
-
 Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   _server = "industrial.ubidots.com";
   _token = token;
@@ -151,7 +145,7 @@ bool Ubidots::ubidotsPublish(char* device) {
   _buildPayload(payload);
 
   if (_debug) {
-    Serial.println("publishing to TOPIC: %s\nJSON dict: %s", topic, payload);
+    Serial.printlnf("publishing to TOPIC: %s\nJSON dict: %s", topic, payload);
   }
   _currentValue = 0;
   bool result = _client->publish(topic, payload);
