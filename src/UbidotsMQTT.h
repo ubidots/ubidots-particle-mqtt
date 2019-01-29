@@ -27,16 +27,16 @@ Made by: Jose García -- Developer at Ubidots Inc
 #include "MQTT.h"
 #include "application.h"
 
-#define FIRST_PART_TOPIC "/v1.6/devices/"
-#define MQTT_PORT 1883
-#define BUFFER_SIZE 512
-#define MAX_VALUES 5
+const uint8_t MAX_VALUES = 5;
+const uint16_t MAX_BUFFER_SIZE = 700;
+const char FIRST_PART_TOPIC[15] = "/v1.6/devices/";
 
 typedef struct Value {
   char *_context;
-  unsigned long _timestamp;
   float _value;
   char *_variableLabel;
+  unsigned long _timestamp;
+  uint16_t _timestampMillis;
 } Value;
 
 class Ubidots {
@@ -44,12 +44,13 @@ class Ubidots {
   void (*callback)(char *, uint8_t *, unsigned int);
   MQTT *_client;
   Value *val;
-  String _clientName;
+  char *_clientName;
   bool _debug = true;
   uint8_t _currentValue;
   char *_server;
   char *_token;
   bool _reconnect(uint8_t maxRetries);
+  void _buildPayload(char *payload);
 
  public:
   Ubidots(char *token, void (*callback)(char *, uint8_t *, unsigned int));
@@ -57,6 +58,8 @@ class Ubidots {
   void add(char *variableLabel, float value, char *context);
   void add(char *variableLabel, float value, char *context,
            unsigned long timestamp);
+  void add(char *variableLabel, float value, char *context,
+           unsigned long timestamp, uint16_t timestampMillis);
   bool connect(uint8_t maxRetries = 0);
   bool isConnected();
   bool loop();

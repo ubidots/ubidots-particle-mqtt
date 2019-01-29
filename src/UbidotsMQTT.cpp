@@ -35,8 +35,9 @@ Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   _server = "industrial.ubidots.com";
   _token = token;
   _currentValue = 0;
-  _clientName = System.deviceID();
-  bool connected = _client->isConnected();
+  String deviceId = System.deviceID();
+  _clientName = new char[deviceId.length() + 1];
+  strcpy(_clientName, deviceId.c_str());
   this->callback = callback;
   val = (Value*)malloc(MAX_VALUES * sizeof(Value));
   this->_client = new MQTT(_server, 1883, this->callback, 512);
@@ -52,10 +53,16 @@ void Ubidots::add(char* variableLabel, float value, char* context) {
 
 void Ubidots::add(char* variableLabel, float value, char* context,
                   unsigned long timestamp) {
+  add(variableLabel, value, context, timestamp, NULL);
+}
+
+void Ubidots::add(char* variableLabel, float value, char* context,
+                  unsigned long timestamp, uint16_t timestampMillis) {
   (val + _currentValue)->_variableLabel = variableLabel;
   (val + _currentValue)->_value = value;
   (val + _currentValue)->_context = context;
   (val + _currentValue)->_timestamp = timestamp;
+  (val + _currentValue)->_timestampMillis = timestampMillis;
   _currentValue++;
   if (_currentValue > MAX_VALUES) {
     Serial.println(
@@ -101,23 +108,32 @@ bool Ubidots::_reconnect(uint8_t maxRetries) {
   return _client->isConnected();
 }
 
-bool Ubidots::ubidotsPublish(char* device) {
-  char topic[150];
-  char payload[500];
-  String str;
-  sprintf(topic, "%s%s", FIRST_PART_TOPIC, device);
+void Ubidots::_buildPayload(char* payload) {
   sprintf(payload, "{");
   for (int i = 0; i <= _currentValue;) {
-    str = String((val + i)->_value, 2);
-    sprintf(payload, "%s\"%s\": [{\"value\": %s", payload,
-            (val + i)->_variableLabel, str.c_str());
-    if ((val + i)->_timestamp != NULL) {
-      sprintf(payload, "%s, \"timestamp\": %lu", payload,
-              (val + i)->_timestamp);
-    }
+    sprintf(payload, "%s\"%s\": [{\"value\": %f", payload,
+            (val + i)->_variableLabel, (val + i)->_value);
+
     if ((val + i)->_context != NULL) {
       sprintf(payload, "%s, \"context\": {%s}", payload, (val + i)->_context);
     }
+
+    if ((val + i)->_timestamp != NULL) {
+      sprintf(payload, "%s,\"timestamp\":%lu", payload, (val + i)->_timestamp);
+      // Adds timestamp milliseconds
+      if ((val + i)->_timestampMillis != NULL) {
+        char milliseconds[3];
+        int timestamp_millis = (val + i)->_timestampMillis;
+        uint8_t units = timestamp_millis % 10;
+        uint8_t dec = (timestamp_millis / 10) % 10;
+        uint8_t hund = (timestamp_millis / 100) % 10;
+        sprintf(milliseconds, "%d%d%d", hund, dec, units);
+        sprintf(payload, "%s%s", payload, milliseconds);
+      } else {
+        sprintf(payload, "%s000", payload);
+      }
+    }
+
     i++;
     if (i >= _currentValue) {
       sprintf(payload, "%s}]}", payload);
@@ -126,6 +142,14 @@ bool Ubidots::ubidotsPublish(char* device) {
       sprintf(payload, "%s}], ", payload);
     }
   }
+}
+
+bool Ubidots::ubidotsPublish(char* device) {
+  char topic[150];
+  sprintf(topic, "%s%s", FIRST_PART_TOPIC, device);
+  char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE);
+  _buildPayload(payload);
+
   if (_debug) {
     Serial.println("publishing to TOPIC: ");
     Serial.println(topic);
@@ -133,7 +157,9 @@ bool Ubidots::ubidotsPublish(char* device) {
     Serial.println(payload);
   }
   _currentValue = 0;
-  return _client->publish(topic, payload);
+  bool result = _client->publish(topic, payload);
+  free(payload);
+  return result;
 }
 
 bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
