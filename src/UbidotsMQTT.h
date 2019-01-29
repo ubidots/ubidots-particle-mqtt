@@ -49,7 +49,7 @@ class Ubidots {
   uint8_t _currentValue;
   char *_server;
   char *_token;
-  bool _reconnect();
+  bool _reconnect(uint8_t maxRetries);
 
  public:
   Ubidots(char *token, void (*callback)(char *, uint8_t *, unsigned int));
@@ -57,7 +57,7 @@ class Ubidots {
   void add(char *variableLabel, float value, char *context);
   void add(char *variableLabel, float value, char *context,
            unsigned long timestamp);
-  bool connect();
+  bool connect(uint8_t maxRetries = 0);
   bool isConnected();
   bool loop();
   bool ubidotsPublish(char *device);

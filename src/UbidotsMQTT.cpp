@@ -67,26 +67,38 @@ void Ubidots::add(char* variableLabel, float value, char* context,
 
 bool Ubidots::isConnected() { return _client->isConnected(); }
 
-bool Ubidots::connect() {
+bool Ubidots::connect(uint8_t maxRetries) {
+  bool connected = false;
   _client->connect(_clientName, _token, NULL);
   if (!_client->isConnected()) {
-    reconnect();
+    Serial.println("trying to connect to broker");
+    connected = _reconnect(maxRetries);
   }
-  return _client->isConnected();
+
+  if (_debug && connected) {
+    Serial.println("connected");
+  }
+
+  return connected;
 }
 
 bool Ubidots::loop() { return _client->loop(); }
 
-bool Ubidots::_reconnect() {
-  if (!_client->isConnected()) {
-    Serial.println("trying to connect to broker");
-  }
+bool Ubidots::_reconnect(uint8_t maxRetries) {
+  uint8_t retries = 0;
   while (!_client->isConnected()) {
     _client->connect(_clientName, _token, NULL);
     Serial.print(".");
-    delay(1000);
+
+    // 255 is the max 8-bit integer value
+    if (maxRetries == retries || retries == 255) {
+      break;
+    }
+
+    retries += 1;
+    delay(100);  // Waits 100 ms before of trying to open a new socket
   }
-  return true;
+  return _client->isConnected();
 }
 
 bool Ubidots::ubidotsPublish(char* device) {
