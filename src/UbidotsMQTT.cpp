@@ -39,7 +39,7 @@ Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   _clientName = new char[deviceId.length() + 1];
   strcpy(_clientName, deviceId.c_str());
   this->callback = callback;
-  val = (Value*)malloc(MAX_VALUES * sizeof(Value));
+  dot = (Dot*)malloc(MAX_VALUES * sizeof(Dot));
   this->_client = new MQTT(_server, 1883, this->callback, 512);
 }
 
@@ -58,11 +58,11 @@ void Ubidots::add(char* variableLabel, float value, char* context,
 
 void Ubidots::add(char* variableLabel, float value, char* context,
                   unsigned long timestamp, uint16_t timestampMillis) {
-  (val + _currentValue)->_variableLabel = variableLabel;
-  (val + _currentValue)->_value = value;
-  (val + _currentValue)->_context = context;
-  (val + _currentValue)->_timestamp = timestamp;
-  (val + _currentValue)->_timestampMillis = timestampMillis;
+  (dot + _currentValue)->_variableLabel = variableLabel;
+  (dot + _currentValue)->_value = value;
+  (dot + _currentValue)->_context = context;
+  (dot + _currentValue)->_timestamp = timestamp;
+  (dot + _currentValue)->_timestampMillis = timestampMillis;
   _currentValue++;
   if (_currentValue > MAX_VALUES) {
     Serial.println(
@@ -112,18 +112,18 @@ void Ubidots::_buildPayload(char* payload) {
   sprintf(payload, "{");
   for (int i = 0; i <= _currentValue;) {
     sprintf(payload, "%s\"%s\": [{\"value\": %f", payload,
-            (val + i)->_variableLabel, (val + i)->_value);
+            (dot + i)->_variableLabel, (dot + i)->_value);
 
-    if ((val + i)->_context != NULL) {
-      sprintf(payload, "%s, \"context\": {%s}", payload, (val + i)->_context);
+    if ((dot + i)->_context != NULL) {
+      sprintf(payload, "%s, \"context\": {%s}", payload, (dot + i)->_context);
     }
 
-    if ((val + i)->_timestamp != NULL) {
-      sprintf(payload, "%s,\"timestamp\":%lu", payload, (val + i)->_timestamp);
+    if ((dot + i)->_timestamp != NULL) {
+      sprintf(payload, "%s,\"timestamp\":%lu", payload, (dot + i)->_timestamp);
       // Adds timestamp milliseconds
-      if ((val + i)->_timestampMillis != NULL) {
+      if ((dot + i)->_timestampMillis != NULL) {
         char milliseconds[3];
-        int timestamp_millis = (val + i)->_timestampMillis;
+        int timestamp_millis = (dot + i)->_timestampMillis;
         uint8_t units = timestamp_millis % 10;
         uint8_t dec = (timestamp_millis / 10) % 10;
         uint8_t hund = (timestamp_millis / 100) % 10;
@@ -151,10 +151,7 @@ bool Ubidots::ubidotsPublish(char* device) {
   _buildPayload(payload);
 
   if (_debug) {
-    Serial.println("publishing to TOPIC: ");
-    Serial.println(topic);
-    Serial.print("JSON dict: ");
-    Serial.println(payload);
+    Serial.println("publishing to TOPIC: %s\nJSON dict: %s", topic, payload);
   }
   _currentValue = 0;
   bool result = _client->publish(topic, payload);
@@ -166,15 +163,14 @@ bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
   char topic[150];
   sprintf(topic, "%s%s/%s/lv", FIRST_PART_TOPIC, deviceLabel, variableLabel);
   if (_debug) {
-    Serial.println("Subscribing to: ");
-    Serial.println(topic);
+    Serial.printlnf("Subscribing to: %s", topic);
   }
   return _client->subscribe(topic);
 }
 
 void Ubidots::ubidotsSetBroker(char* broker, uint16_t port) {
   if (_debug) {
-    Serial.printf("New settings:\nBroker Url: %s\nPort: %d", broker, port);
+    Serial.printlnf("New settings:\nBroker Url: %s\nPort: %d", broker, port);
   }
   _client->setBroker(broker, port);
 }

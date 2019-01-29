@@ -31,19 +31,19 @@ const uint8_t MAX_VALUES = 5;
 const uint16_t MAX_BUFFER_SIZE = 700;
 const char FIRST_PART_TOPIC[15] = "/v1.6/devices/";
 
-typedef struct Value {
+typedef struct Dot {
   char *_context;
   float _value;
   char *_variableLabel;
   unsigned long _timestamp;
   uint16_t _timestampMillis;
-} Value;
+} Dot;
 
 class Ubidots {
  private:
   void (*callback)(char *, uint8_t *, unsigned int);
   MQTT *_client;
-  Value *val;
+  Dot *dot;
   char *_clientName;
   bool _debug = true;
   uint8_t _currentValue;
