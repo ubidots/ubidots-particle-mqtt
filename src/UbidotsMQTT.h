@@ -34,39 +34,40 @@ Made by: Jose García -- Developer at Ubidots Inc
 #define MAX_VALUES 5
 
 typedef struct Value {
-    char *_context;
-    unsigned long _timestamp;
-    float _value;
-    char  *_variableLabel;
+  char *_context;
+  unsigned long _timestamp;
+  float _value;
+  char *_variableLabel;
 } Value;
 
 class Ubidots {
-
  private:
-    void (*callback)(char*,uint8_t*,unsigned int);
-    MQTT *_client;
-    Value * val;
-    String _clientName;
-    bool _debug = false;
-    uint8_t _currentValue;
-    char* _server;
-    char* _token;
-    char* build_json(char* variableLabel, float value, char *context, char *timestamp);
+  void (*callback)(char *, uint8_t *, unsigned int);
+  MQTT *_client;
+  Value *val;
+  String _clientName;
+  bool _debug = true;
+  uint8_t _currentValue;
+  char *_server;
+  char *_token;
+  char *build_json(char *variableLabel, float value, char *context,
+                   char *timestamp);
 
  public:
-    Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int));
-    void add(char* variableLabel, float value);
-    void add(char* variableLabel, float value, char *context);
-    void add(char* variableLabel, float value, char *context, unsigned long timestamp);
-    bool connect();
-    void initialize();
-    bool isConnected();
-    bool loop();
-    bool reconnect();
-    bool ubidotsPublish(char* device);
-    bool ubidotsSubscribe(char* deviceLabel, char* variableLabel);
-    void ubidotsSetBroker(char* broker);
-
+  Ubidots(char *token, void (*callback)(char *, uint8_t *, unsigned int));
+  void add(char *variableLabel, float value);
+  void add(char *variableLabel, float value, char *context);
+  void add(char *variableLabel, float value, char *context,
+           unsigned long timestamp);
+  bool connect();
+  void initialize();
+  bool isConnected();
+  bool loop();
+  bool reconnect();
+  bool ubidotsPublish(char *device);
+  bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
+  void ubidotsSetBroker(char *broker);
+  void ubidotsSetDebug(bool debug);
 };
 
 #endif
