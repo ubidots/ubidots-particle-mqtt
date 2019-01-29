@@ -49,8 +49,7 @@ class Ubidots {
   uint8_t _currentValue;
   char *_server;
   char *_token;
-  char *build_json(char *variableLabel, float value, char *context,
-                   char *timestamp);
+  bool _reconnect();
 
  public:
   Ubidots(char *token, void (*callback)(char *, uint8_t *, unsigned int));
@@ -59,10 +58,8 @@ class Ubidots {
   void add(char *variableLabel, float value, char *context,
            unsigned long timestamp);
   bool connect();
-  void initialize();
   bool isConnected();
   bool loop();
-  bool reconnect();
   bool ubidotsPublish(char *device);
   bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
   void ubidotsSetBroker(char *broker, uint16_t port = 1883);

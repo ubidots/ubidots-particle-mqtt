@@ -32,11 +32,14 @@ Made by: Jose García -- Developer at Ubidots Inc
 #endif
 
 Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
-  this->callback = callback;
-  _server = SERVER;
+  _server = "industrial.ubidots.com";
   _token = token;
   _currentValue = 0;
+  _clientName = System.deviceID();
+  bool connected = _client->isConnected();
+  this->callback = callback;
   val = (Value*)malloc(MAX_VALUES * sizeof(Value));
+  this->_client = new MQTT(_server, 1883, this->callback, 512);
 }
 
 void Ubidots::add(char* variableLabel, float value) {
@@ -65,28 +68,18 @@ void Ubidots::add(char* variableLabel, float value, char* context,
 bool Ubidots::isConnected() { return _client->isConnected(); }
 
 bool Ubidots::connect() {
-  bool connected = false;
-  if (!_client->isConnected()) {
-    connected = reconnect();
-  }
-  return connected;
-}
-
-void Ubidots::initialize() {
-  this->_client = new MQTT(_server, 1883, this->callback, 512);
-  _clientName = System.deviceID();
   _client->connect(_clientName, _token, NULL);
-  bool connected = _client->isConnected();
-  if (connected) {
-    Serial.println("connected to broker");
+  if (!_client->isConnected()) {
+    reconnect();
   }
+  return _client->isConnected();
 }
 
 bool Ubidots::loop() { return _client->loop(); }
 
-bool Ubidots::reconnect() {
+bool Ubidots::_reconnect() {
   if (!_client->isConnected()) {
-    Serial.println("attemping to connect");
+    Serial.println("trying to connect to broker");
   }
   while (!_client->isConnected()) {
     _client->connect(_clientName, _token, NULL);
