@@ -1,6 +1,6 @@
-# Ubidots MQTT library for Paritcle Devices
+# Ubidots MQTT library for Particle Devices
 
-This library connects to is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. We had to make a small modification on line 121 to MQTT.h file, when you try to wrapp the library it seems that a memory allocation for ip address is not erased properly so to fix it the best way is to declare it NULL to avoid that it takes any random value. Additionally, some define guards were added.
+This library is based on the MQTT library for Spark Core made by Hirotakaster which is one of the most popular libraries for MQTT in the Particle environment. We had to make a small modification on line 121 in the MQTT.h file. When trying to wrapp up the library a memory allocation for IP address is not erased properly, so in order to fix it, we've declared as NULL and hence avoids taking a random value. Additionally, some guards were added.
 
 In a few lines you should be able to publish or subscribe to Ubidots devices and variables.
 
@@ -25,17 +25,17 @@ In a few lines you should be able to publish or subscribe to Ubidots devices and
 2. After claiming your Particle Device and setting up your Ubidots account, let's go to [Particle's Web IDE](https://build.particle.io/build).
     * In the Particle's Web IDE create a new app and set the name.
     * Go to the library tab.
-    * In the "Libraries" tab, search "Ubidots" and select the UbidotsMQTT library.
-    * Click on **INCLUDE IN APP**. And return to "MYAPP.ino"
+    * Search "Ubidots" and select the UbidotsMQTT library.
+    * Click on **INCLUDE IN APP**. And return to your app.
     * Do the same to add hirotakaster's MQTT library.
 
 # Methods Available
 
 ### Ubidots Constructor
 ```
-Ubidots(char* token, void (*callback)(char*,uint8_t*,unsigned int))
+Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int))
 ```
-> Creates an Ubidots instance, you must setup as input your Ubidots TOKEN and the callback function. Keep in mind that the callback function must be declared even if you don't need to subscribe to any variable, so this line should go always in your scripts:
+> Creates an Ubidots instance, you must setup as input your Ubidots TOKEN and the callback function. Keep in mind that the callback function must be declared even if you don't need to subscribe to any variable, so the below code line should always be in your scripts:
 
 ```cpp
 void callback(char* topic, byte* payload, unsigned int length);
