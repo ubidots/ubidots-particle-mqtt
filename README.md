@@ -9,7 +9,6 @@ In a few lines you should be able to publish or subscribe to Ubidots devices and
 * [Particle Core, Photon or Electron](https://store.particle.io/).
 * Micro USB cable.
 * Internet connection.
-* The [MQTT library by hirotakaster](https://github.com/hirotakaster/MQTT).
 
 ## Setup
 
@@ -44,7 +43,7 @@ void callback(char* topic, byte* payload, unsigned int length);
 
 Creates an instance to connect tu Ubidots' broker. Default broker is `industrial.api.ubidots.com`. If you're using Ubidots for Education platform broker `things.ubidots.com`, use the `setBroker()` method explained below.
 
-# Method to send data
+# Methods to send data
 
 ### add
 ```
@@ -56,16 +55,43 @@ void add(char* variableLabel, float value, char *context, char *dotTimestamp, ui
 @dot_timestamp_seconds, [Optional]. The dot's timestamp in seconds.  
 @dot_timestamp_millis, [Optional]. The dot's timestamp number of milliseconds. If the timestamp's milliseconds values is not set, the seconds will be multplied by 1000.
 
-Adds a dot with its value, context and timestamp to be sent in the payload to a certain device. You can add up to 5 dots before publishing them to Ubidots. 
+Adds a dot with its value, context and timestamp to be sent in the payload. You can add up to 5 dots before publishing them to Ubidots. 
 ## ubidotsPublish
 ```
 bool ubidotsPublish(char *deviceLabel);
 ```
-> @deviceLabel, [Required], device label to publish data to in Ubidots
-Publish the values added using the add() method to the 
+> @deviceLabel, [Optional], [Defaults] = PARTICLE_DEVICE_ID. Device label to publish data to in Ubidots.
+
+Sends all the data added using the add() method. Returns true if the data was sent. 
 
 # Method to retrieve data
 
+## ubidotsSubscribe
+```
+ubidotsSubscribe(char* deviceLabel, char* variableLabel);
+```
+> @deviceLabel, [Required]. The device label which contains the variable to retrieve values from.
+@variableLabel, [Required]. The variable label to retrieve the last value from.
+
+Subscribe to the specified device label and variable label of your Ubidots account.
+
+# Auxiliar methods
+
+## addContext
+```
+void addContext(char* keyLabel, char* keyValue);
+```
+> @keyLabel, [Required]. The key context label to store values.  
+@keyValue, [Required]. The key pair value. 
+
+Adds to local memory a new key-value context key. The method inputs must be char pointers. The method allows to store up to 10 key-value pairs.
+## getContext
+```
+void getContext(char *contextResult);
+```
+> @contextResult, [Required]. A char pointer where the context will be stored.
+
+Builds the context according to the chosen protocol and stores it in the contextResult char pointer.
 ## connect
 ```
 bool connect(uint8_t maxRetries);
@@ -83,18 +109,22 @@ loop();
 bool isConnected();
 ```
 > Returns `true` if there's an open socket socket with the broker, `false` otherwise.
-
 ## ubidotsSetBroker
 ```
-ubidotsSetBroker(char* broker);
+void ubidotsSetBroker(char *broker, uint16_t port);
 ```
-> Sets the broker properly for publish and subscribe to Ubidots accounts. If your account if a business one, set "business.api.ubidots.com" or the endpoint provided by Ubidots as your broker, see examples for more information.
-By default, broker will be set to publish and subscribe to free educational version accounts with broker "things.ubidots.com".
-## ubidotsSubscribe
+> @broker, [Required]. Broker DNS to connect to.
+@port, [Optional], [Defaults] = 1883. TCP port used to open the socket 
+
+Sets the broker properly to publish and subscribe to Ubidots accounts. If your account is an Industrial one,set "industrial.api.ubidots.com". By default, broker will be set to publish and subscribe to "industrial.api.ubidots.com". Use "things.ubidots.com" for Ubidots for Education free version platform.
+## setDebug
 ```
-ubidotsSubscribe(char* deviceLabel, char* variableLabel);
+void ubidotsSetDebug(bool debug);
 ```
-> Subscribe to the specified device label and variable label of your Ubidots account.
+> @debug, [Required]. Boolean type to turn off/on debug messages.
+
+Make debug messages available through the serial port.
+
 
 # Examples
 ## Subscribe to a variable
