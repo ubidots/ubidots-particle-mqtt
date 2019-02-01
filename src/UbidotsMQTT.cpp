@@ -84,8 +84,12 @@ void Ubidots::add(char* variableLabel, float value, char* context,
 
 /*
  * Sends data to Ubidots
- * @arg device_label [Mandatory] device label where the dot will be stored
+ * @arg device_label [Optional] device label where data will be sent to in Ubidots.
  */
+
+bool Ubidots::ubidotsPublish() {
+  return ubidotsPublish(_clientName);
+}
 
 bool Ubidots::ubidotsPublish(char* device_label) {
   char topic[150];

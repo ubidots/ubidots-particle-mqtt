@@ -72,6 +72,7 @@ class Ubidots {
   bool connect(uint8_t maxRetries = 0);
   bool isConnected();
   bool loop();
+  bool ubidotsPublish();
   bool ubidotsPublish(char *device_label);
   bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
   void ubidotsSetBroker(char *broker, uint16_t port = 1883);
