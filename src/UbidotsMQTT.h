@@ -52,7 +52,7 @@ class Ubidots {
   char *_clientName;
   bool _debug = true;
   uint8_t _currentValue;
-  int8_t _current_context;
+  int8_t _currentContext;
   char *_server;
   char *_token;
   ContextUbi *_context;
