@@ -30,7 +30,7 @@ Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   _server = "industrial.ubidots.com";
   _token = token;
   _currentValue = 0;
-  _current_context = 0;
+  _currentContext = 0;
   String deviceId = System.deviceID();
   _clientName = new char[deviceId.length() + 1];
   strcpy(_clientName, deviceId.c_str());
@@ -45,13 +45,13 @@ FUNCTIONS TO SEND DATA
 
 /*
  * Add a value of variable to save
- * @arg variable_label [Mandatory] variable label where the dot will be stored
- * @arg value [Mandatory] Dot value
- * @arg context [optional] Dot context to store. Default NULL
- * @arg dot_timestamp_seconds [optional] Dot timestamp in seconds, usefull for
+ * @arg variableLabel [Mandatory] variable label where the dot will be stored
+ * @arg value [Mandatory] Dot's value.
+ * @arg context [Optional] Dot's context to store. Default NULL
+ * @arg dotTimestampSeconds [Optional] Dot's dotTimestampSeconds in seconds, usefull for
  * datalogger. Default NULL
- * @arg dot_timestamp_millis [optional] Dot timestamp in millis to add to
- * dot_timestamp_seconds, usefull for datalogger.
+ * @arg dotTimestampMillis [Optional] Dot dotTimestampSeconds in millis to add to
+ * dotTimestampSeconds, usefull for datalogger.
  */
 void Ubidots::add(char* variableLabel, float value) {
   add(variableLabel, value, NULL, NULL);
@@ -62,17 +62,17 @@ void Ubidots::add(char* variableLabel, float value, char* context) {
 }
 
 void Ubidots::add(char* variableLabel, float value, char* context,
-                  unsigned long timestamp) {
-  add(variableLabel, value, context, timestamp, NULL);
+    unsigned long dotTimestampSeconds) {
+  add(variableLabel, value, context, dotTimestampSeconds, NULL);
 }
 
 void Ubidots::add(char* variableLabel, float value, char* context,
-                  unsigned long timestamp, uint16_t timestampMillis) {
+                  unsigned long dotTimestampSeconds, uint16_t dotTimestampMillis) {
   (dot + _currentValue)->_variableLabel = variableLabel;
   (dot + _currentValue)->_value = value;
   (dot + _currentValue)->_context = context;
-  (dot + _currentValue)->_timestamp = timestamp;
-  (dot + _currentValue)->_timestampMillis = timestampMillis;
+  (dot + _currentValue)->_dotTimestampSeconds = dotTimestampSeconds;
+  (dot + _currentValue)->_dotTimestampMillis = dotTimestampMillis;
   _currentValue++;
   if (_currentValue > MAX_VALUES) {
     Serial.println(
@@ -84,16 +84,16 @@ void Ubidots::add(char* variableLabel, float value, char* context,
 
 /*
  * Sends data to Ubidots
- * @arg device_label [Optional] device label where data will be sent to in Ubidots.
+ * @arg deviceLabel [Optional] device label where data will be sent to in Ubidots.
  */
 
 bool Ubidots::ubidotsPublish() {
   return ubidotsPublish(_clientName);
 }
 
-bool Ubidots::ubidotsPublish(char* device_label) {
+bool Ubidots::ubidotsPublish(char* deviceLabel) {
   char topic[150];
-  sprintf(topic, "%s%s", FIRST_PART_TOPIC, device_label);
+  sprintf(topic, "%s%s", FIRST_PART_TOPIC, deviceLabel);
   char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE);
   _buildPayload(payload);
 
@@ -111,9 +111,9 @@ FUNCTIONS TO RETRIEVE DATA
 ***************************************************************************/
 
 /*
- * Sends data to Ubidots
- * @arg device_label [Mandatory] device label to retrieve values from
- * @arg variable_label [Mandatory] variable label to retrieve values from
+ * Retrieves data from Ubidots
+ * @arg deviceLabel [Mandatory] device label to retrieve values from
+ * @arg variableLabel [Mandatory] variable label to retrieve values from
  */
 bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
   char topic[150];
@@ -132,34 +132,34 @@ AUXILIAR FUNCTIONS
  * Adds to the context structure values to retrieve later it easily by the user
  */
 
-void Ubidots::addContext(char* key_label, char* key_value) {
-  (_context + _current_context)->key_label = key_label;
-  (_context + _current_context)->key_value = key_value;
-  _current_context++;
-  if (_current_context >= MAX_VALUES) {
+void Ubidots::addContext(char* keyLabel, char* keyValue) {
+  (_context + _currentContext)->keyLabel = keyLabel;
+  (_context + _currentContext)->keyValue = keyValue;
+  _currentContext++;
+  if (_currentContext >= MAX_VALUES) {
     Serial.println(
         F("You are adding more than the maximum of consecutive key-values "
           "pairs"));
-    _current_context = MAX_VALUES;
+    _currentContext = MAX_VALUES;
   }
 }
 
 /*
- * Retrieves the actual stored context properly formatted
+ * Builds the actual stored context properly formatted
  */
 
-void Ubidots::getContext(char* context_result) {
+void Ubidots::getContext(char* contextResult) {
   // TCP context type
-  sprintf(context_result, "{");
-  for (uint8_t i = 0; i < _current_context;) {
-    sprintf(context_result, "%s%s:%s", context_result,
-            (_context + i)->key_label, (_context + i)->key_value);
+  sprintf(contextResult, "{");
+  for (uint8_t i = 0; i < _currentContext;) {
+    sprintf(contextResult, "%s%s:%s", contextResult,
+            (_context + i)->keyLabel, (_context + i)->keyValue);
     i++;
-    if (i < _current_context) {
-      sprintf(context_result, "%s,", context_result);
+    if (i < _currentContext) {
+      sprintf(contextResult, "%s,", contextResult);
     } else {
-      sprintf(context_result, "%s}", context_result);
-      _current_context = 0;
+      sprintf(contextResult, "%s}", contextResult);
+      _currentContext = 0;
     }
   }
 }
@@ -181,17 +181,17 @@ void Ubidots::_buildPayload(char* payload) {
       sprintf(payload, "%s, \"context\": {%s}", payload, (dot + i)->_context);
     }
 
-    // Adds the timestamp
-    if ((dot + i)->_timestamp != NULL) {
-      sprintf(payload, "%s,\"timestamp\":%lu", payload, (dot + i)->_timestamp);
+    // Adds the dotTimestampSeconds
+    if ((dot + i)->_dotTimestampSeconds != NULL) {
+      sprintf(payload, "%s,\"dotTimestampSeconds\":%lu", payload, (dot + i)->_dotTimestampSeconds);
 
-      // Adds timestamp milliseconds
-      if ((dot + i)->_timestampMillis != NULL) {
+      // Adds dotTimestampSeconds milliseconds
+      if ((dot + i)->_dotTimestampMillis != NULL) {
         char milliseconds[3];
-        int timestamp_millis = (dot + i)->_timestampMillis;
-        uint8_t units = timestamp_millis % 10;
-        uint8_t dec = (timestamp_millis / 10) % 10;
-        uint8_t hund = (timestamp_millis / 100) % 10;
+        int dotTimestampSecondsMillis = (dot + i)->_dotTimestampMillis;
+        uint8_t units = dotTimestampSecondsMillis % 10;
+        uint8_t dec = (dotTimestampSecondsMillis / 10) % 10;
+        uint8_t hund = (dotTimestampSecondsMillis / 100) % 10;
         sprintf(milliseconds, "%d%d%d", hund, dec, units);
         sprintf(payload, "%s%s", payload, milliseconds);
       } else {

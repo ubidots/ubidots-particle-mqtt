@@ -35,13 +35,13 @@ typedef struct Dot {
   char *_context;
   float _value;
   char *_variableLabel;
-  unsigned long _timestamp;
-  uint16_t _timestampMillis;
+  unsigned long _dotTimestampSeconds;
+  uint16_t _dotTimestampMillis;
 } Dot;
 
 typedef struct ContextUbi {
-  char *key_label;
-  char *key_value;
+  char *keyLabel;
+  char *keyValue;
 } ContextUbi;
 
 class Ubidots {
@@ -64,16 +64,16 @@ class Ubidots {
   void add(char *variableLabel, float value);
   void add(char *variableLabel, float value, char *context);
   void add(char *variableLabel, float value, char *context,
-           unsigned long timestamp);
+           unsigned long dotTimestampSeconds);
   void add(char *variableLabel, float value, char *context,
-           unsigned long timestamp, uint16_t timestampMillis);
-  void addContext(char *key_label, char *key_value);
-  void getContext(char *context_result);
+           unsigned long dotTimestampSeconds, uint16_t dotTimestampMillis);
+  void addContext(char *keyLabel, char *keyValue);
+  void getContext(char *contextResult);
   bool connect(uint8_t maxRetries = 0);
   bool isConnected();
   bool loop();
   bool ubidotsPublish();
-  bool ubidotsPublish(char *device_label);
+  bool ubidotsPublish(char *deviceLabel);
   bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
   void ubidotsSetBroker(char *broker, uint16_t port = 1883);
   void ubidotsSetDebug(bool debug);
