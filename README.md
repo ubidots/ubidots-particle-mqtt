@@ -32,7 +32,7 @@ In a few lines you should be able to publish or subscribe to Ubidots devices and
 
 # Constructor
 
-### Ubidots Constructor
+### Ubidots
 ```
 Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int))
 ```
@@ -43,9 +43,12 @@ void callback(char* topic, byte* payload, unsigned int length);
 ```
 
 Creates an instance to connect tu Ubidots' broker. Default broker is `industrial.api.ubidots.com`. If you're using Ubidots for Education platform broker `things.ubidots.com`, use the `setBroker()` method explained below.
+
+# Method to send data
+
 ### add
 ```
-add(char* variableLabel, float value, char *context, char *dotTimestamp, uint16_t dotTimestampMillis);
+void add(char* variableLabel, float value, char *context, char *dotTimestamp, uint16_t dotTimestampMillis);
 ```
 > @variableLabel, [Required]. The label of the variable where the dot will be stored.
 @value, [Required]. The value of the dot.  
@@ -54,10 +57,18 @@ add(char* variableLabel, float value, char *context, char *dotTimestamp, uint16_
 @dot_timestamp_millis, [Optional]. The dot's timestamp number of milliseconds. If the timestamp's milliseconds values is not set, the seconds will be multplied by 1000.
 
 Adds a dot with its value, context and timestamp to be sent in the payload to a certain device. You can add up to 5 dots before publishing them to Ubidots. 
+## ubidotsPublish
+```
+bool ubidotsPublish(char *deviceLabel);
+```
+> @deviceLabel, [Required], device label to publish data to in Ubidots
+Publish the values added using the add() method to the 
+
+# Method to retrieve data
 
 ## connect
 ```
-connect(uint8_t maxRetries);
+bool connect(uint8_t maxRetries);
 ```
 > @maxRetries [Optional], [Default] = 0. Max retries is 255.
 
@@ -69,14 +80,10 @@ loop();
 > Infinite loop for MQTT connection, insert it at the end of your routine.
 ## isConnected
 ```
-isConnected();
+bool isConnected();
 ```
 > Returns `true` if there's an open socket socket with the broker, `false` otherwise.
-## ubidotsPublish
-```
-ubidotsPublish();
-```
-> Publish the values added using the add() method
+
 ## ubidotsSetBroker
 ```
 ubidotsSetBroker(char* broker);
