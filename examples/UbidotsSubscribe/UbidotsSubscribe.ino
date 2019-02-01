@@ -9,15 +9,18 @@
  ****************************************/
 
 #ifndef TOKEN
-#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#define TOKEN "YOUR_TOKEN"  // Add here your Ubidots TOKEN
 #endif
+
+#define VARIABLE_LABEL_TO_SUBSCRIBE "YOUR_VARIABLE_LABEL"
+#define DEVICE_LABEL_TO_SUBSCRIBE "YOUR_DEVICE_LABEL"
 
 
 /****************************************
  * Auxiliar Functions
  ****************************************/
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char* topic, uint8_t* payload, unsigned int length) {
     Serial.print("Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
@@ -26,8 +29,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
         Serial.print((char)payload[i]); // prints the answer of the broker for debug purpose
     }
     // Some stuff to make with the payload obtained
-        //
-   //
+    
     Serial.println();
 }
 
@@ -44,25 +46,29 @@ Ubidots client(TOKEN, callback);
 
 void setup() {
     Serial.begin(115200);
-    client.initialize();
 
-    // Uncomment this line if you have a business Ubidots account
-    //client.ubidotsSetBroker("business.api.ubidots.com");
+    // Comment below line to disable debug messages.
+    client.ubidotsSetDebug(true);
+
+    // Uncomment below line if you have an Ubidots for Education account
+    //client.ubidotsSetBroker("things.ubidots.com");
+
+    // Connect to broker.
+    client.connect(5); 
 
     if(client.isConnected()){
         // Insert as first parameter the device to subscribe and as second the variable label
-        client.ubidotsSubscribe("device-to-subscribe", "water-level"); 
+        client.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE, VARIABLE_LABEL_TO_SUBSCRIBE); 
     }
 }
 
 void loop() {
     if(!client.isConnected()){
-        client.reconnect();
+        client.connect(5);
         // Insert as first parameter the device to subscribe and as second the variable label
-        client.ubidotsSubscribe("device-to-subscribe", "water-level"); 
+        client.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE, VARIABLE_LABEL_TO_SUBSCRIBE); 
     }
 
-    // Client loop for publishing and to maintain the connection
     client.loop();
-    delay(1000);
+    delay(5000);
 }
