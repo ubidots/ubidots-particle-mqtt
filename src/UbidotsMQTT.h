@@ -60,7 +60,7 @@ class Ubidots {
   void _buildPayload(char *payload);
 
  public:
-  Ubidots(char *token, void (*callback)(char *, uint8_t *, unsigned int));
+  UbidotsMQTT(char *token, void (*callback)(char *, uint8_t *, unsigned int));
   void add(char *variableLabel, float value);
   void add(char *variableLabel, float value, char *context);
   void add(char *variableLabel, float value, char *context,
