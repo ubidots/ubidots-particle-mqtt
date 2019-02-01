@@ -37,7 +37,7 @@ UbidotsMQTT::UbidotsMQTT(char* token,
   _server = SERVER;
   _token = token;
   _currentValue = 0;
-  val = (Value*)malloc(MAX_VALUES * sizeof(Value));
+  val = (ValueMQTT*)malloc(MAX_VALUES * sizeof(ValueMQTT));
 }
 
 void UbidotsMQTT::add(char* variableLabel, float value) {
