@@ -27,9 +27,9 @@ In a few lines you should be able to publish or subscribe to Ubidots devices and
     * Search "Ubidots" and select the UbidotsMQTT library.
     * Click on **INCLUDE IN APP**. And return to your app.   
 
-## Documentation
+# Documentation
 
-# Constructor
+## Constructor
 
 ### Ubidots
 ```
