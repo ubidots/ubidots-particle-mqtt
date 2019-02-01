@@ -9,12 +9,12 @@
  ****************************************/
 
 #ifndef TOKEN
-#define TOKEN "Your_TOKEN"  // Put here your Ubidots TOKEN
+#define TOKEN "YOUR_UBIDOTS_TOKEN"  // Put here your Ubidots TOKEN
 #endif
 
 #define VARIABLE_LABEL "YOUR_VARIABLE_LABEL"
 
-void callback(char* topic, byte* payload, unsigned int length); // callback most be defined
+void callback(char* topic, byte* payload, unsigned int length){}; // callback most be defined
 
 /****************************************
  * Instances
@@ -59,5 +59,5 @@ void loop() {
 
     // Client loop for publishing and to maintain the connection
     client.loop();
-    delay(1000);
+    delay(5000);
 }
