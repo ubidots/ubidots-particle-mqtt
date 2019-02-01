@@ -27,7 +27,7 @@ Developed and maintained by Jose Garcia for IoT Services Inc
  * Overloaded constructors
  ***************************************************************************/
 Ubidots::Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
-  _server = "industrial.ubidots.com";
+  _server = "industrial.api.ubidots.com";
   _token = token;
   _currentValue = 0;
   _currentContext = 0;
