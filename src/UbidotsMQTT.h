@@ -27,8 +27,8 @@ Developed and maintained by Jose Garcia for IoT Services Inc
 #include "MQTT.h"
 #include "application.h"
 
-const uint8_t MAX_VALUES = 5;
-const uint16_t MAX_BUFFER_SIZE = 700;
+const uint8_t MAX_VALUES_MQTT = 5;
+const uint16_t MAX_BUFFER_SIZE_MQTT = 700;
 const char FIRST_PART_TOPIC[15] = "/v1.6/devices/";
 
 typedef struct Dot {
@@ -39,10 +39,10 @@ typedef struct Dot {
   uint16_t _dotTimestampMillis;
 } Dot;
 
-typedef struct ContextUbi {
+typedef struct ContextUbiMQTT {
   char *keyLabel;
   char *keyValue;
-} ContextUbi;
+} ContextUbiMQTT;
 
 class UbidotsMQTT {
  private:
@@ -55,7 +55,7 @@ class UbidotsMQTT {
   int8_t _currentContext;
   char *_server;
   char *_token;
-  ContextUbi *_context;
+  ContextUbiMQTT *_context;
   bool _reconnect(uint8_t maxRetries);
   void _buildPayload(char *payload);
 

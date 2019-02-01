@@ -35,7 +35,7 @@ UbidotsMQTT::UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned
   _clientName = new char[deviceId.length() + 1];
   strcpy(_clientName, deviceId.c_str());
   this->callback = callback;
-  dot = (Dot*)malloc(MAX_VALUES * sizeof(Dot));
+  dot = (Dot*)malloc(MAX_VALUES_MQTT * sizeof(Dot));
   this->_client = new MQTT(_server, 1883, this->callback, 512);
 }
 
@@ -74,11 +74,11 @@ void UbidotsMQTT::add(char* variableLabel, float value, char* context,
   (dot + _currentValue)->_dotTimestampSeconds = dotTimestampSeconds;
   (dot + _currentValue)->_dotTimestampMillis = dotTimestampMillis;
   _currentValue++;
-  if (_currentValue > MAX_VALUES) {
+  if (_currentValue > MAX_VALUES_MQTT) {
     Serial.println(
         F("You are adding more than the maximum of the allowed consecutive "
           "variables"));
-    _currentValue = MAX_VALUES;
+    _currentValue = MAX_VALUES_MQTT;
   }
 }
 
@@ -94,7 +94,7 @@ bool UbidotsMQTT::ubidotsPublish() {
 bool UbidotsMQTT::ubidotsPublish(char* deviceLabel) {
   char topic[150];
   sprintf(topic, "%s%s", FIRST_PART_TOPIC, deviceLabel);
-  char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE);
+  char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE_MQTT);
   _buildPayload(payload);
 
   if (_debug) {
@@ -136,11 +136,11 @@ void UbidotsMQTT::addContext(char* keyLabel, char* keyValue) {
   (_context + _currentContext)->keyLabel = keyLabel;
   (_context + _currentContext)->keyValue = keyValue;
   _currentContext++;
-  if (_currentContext >= MAX_VALUES) {
+  if (_currentContext >= MAX_VALUES_MQTT) {
     Serial.println(
         F("You are adding more than the maximum of consecutive key-values "
           "pairs"));
-    _currentContext = MAX_VALUES;
+    _currentContext = MAX_VALUES_MQTT;
   }
 }
 
