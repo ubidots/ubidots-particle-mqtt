@@ -43,10 +43,10 @@ UbidotsMQTT client(TOKEN, callback);
 
 void setup() {
   Serial.begin(115200);
-  client.initialize();
 
   // Uncomment this line if you have a business Ubidots account
-  // client.ubidotsSetBroker("business.api.ubidots.com");
+  client.ubidotsSetBroker("industrial.api.ubidots.com");
+  client.initialize();
 
   if (client.isConnected()) {
     // Insert as first parameter the device to subscribe and as second the
