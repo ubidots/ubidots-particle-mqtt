@@ -125,8 +125,10 @@ void ubidotsSetDebug(bool debug);
 
 Make debug messages available through the serial port.
 
-
 # Examples
+
+Refer to the examples folder
+
 ## Subscribe to a variable
 
 To subscribe to a variable, you need to specify your device and variable lables as input arguments for the ubidotsSubscribe() function. The incoming value will be returned by the MQTT library in the payload variable, by default the subscribed function only gets the last value of the variable subscribed. Retain value feature is only available for business users.
