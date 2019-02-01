@@ -22,44 +22,56 @@ In a few lines you should be able to publish or subscribe to Ubidots devices and
         - [Using your smart phone](https://docs.particle.io/guide/getting-started/start/Photon/).
         - [Connecting it to your computer over USB](https://docs.particle.io/guide/getting-started/connect/Photon/).
 
-2. After claiming your Particle Device and setting up your Ubidots account, let's go to [Particle's Web IDE](https://build.particle.io/build).
+2. After claiming your Particle Device and setting up your Ubidots account, head to [Particle's Web IDE](https://build.particle.io/build).
     * In the Particle's Web IDE create a new app and set the name.
     * Go to the library tab.
     * Search "Ubidots" and select the UbidotsMQTT library.
-    * Click on **INCLUDE IN APP**. And return to your app.
-    * Do the same to add hirotakaster's MQTT library.
+    * Click on **INCLUDE IN APP**. And return to your app.   
 
-# Methods Available
+## Documentation
+
+# Constructor
 
 ### Ubidots Constructor
 ```
 Ubidots(char* token, void (*callback)(char*, uint8_t*, unsigned int))
 ```
-> Creates an Ubidots instance, you must setup as input your Ubidots TOKEN and the callback function. Keep in mind that the callback function must be declared even if you don't need to subscribe to any variable, so the below code line should always be in your scripts:
-
+> @token, [Required]. Your Ubidots unique account [TOKEN](http://help.ubidots.com/user-guides/find-your-token-from-your-ubidots-account).
+@callback, [Required]. the callback function must be declared even though you don't need to subscribe to any variable, so the below code line should always be in your scripts:
 ```cpp
 void callback(char* topic, byte* payload, unsigned int length);
 ```
+
+Creates an instance to connect tu Ubidots' broker. Default broker is `industrial.api.ubidots.com`. If you're using Ubidots for Education platform broker `things.ubidots.com`, use the `setBroker()` method explained below.
 ### add
 ```
-add(char* variableLabel, float value, char *context, char *timestamp);
+add(char* variableLabel, float value, char *context, char *dotTimestamp, uint16_t dotTimestampMillis);
 ```
-> Add a variable with a value, context and timestamp to be sent to a certain data source, once you use add() you can publish your variable using the ubidotsPublish() method. You can add 5 variables maximum before of publish them. Context and timestamp are optionals.
+> @variableLabel, [Required]. The label of the variable where the dot will be stored.
+@value, [Required]. The value of the dot.  
+@context, [Optional]. The dot's context.  
+@dot_timestamp_seconds, [Optional]. The dot's timestamp in seconds.  
+@dot_timestamp_millis, [Optional]. The dot's timestamp number of milliseconds. If the timestamp's milliseconds values is not set, the seconds will be multplied by 1000.
+
+Adds a dot with its value, context and timestamp to be sent in the payload to a certain device. You can add up to 5 dots before publishing them to Ubidots. 
+
 ## connect
 ```
-connect();
+connect(uint8_t maxRetries);
 ```
-> Tries to connect to the broker
-## initialize
-```
-initialize();
-```
-> Creates the proper credentials to connect to Ubidots' broker
+> @maxRetries [Optional], [Default] = 0. Max retries is 255.
+
+Indicates the number of times the method will attempt to connect to Ubidots' broker.
 ## loop
 ```
 loop();
 ```
-> Infinite loop for MQTT connection, insert it at the end of your routine
+> Infinite loop for MQTT connection, insert it at the end of your routine.
+## isConnected
+```
+isConnected();
+```
+> Returns `true` if there's an open socket socket with the broker, `false` otherwise.
 ## ubidotsPublish
 ```
 ubidotsPublish();
