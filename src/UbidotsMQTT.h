@@ -44,7 +44,7 @@ typedef struct ContextUbi {
   char *keyValue;
 } ContextUbi;
 
-class Ubidots {
+class UbidotsMQTT {
  private:
   void (*callback)(char *, uint8_t *, unsigned int);
   MQTT *_client;

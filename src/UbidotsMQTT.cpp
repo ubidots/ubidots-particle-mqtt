@@ -26,7 +26,7 @@ Developed and maintained by Jose Garcia for IoT Services Inc
 /**************************************************************************
  * Overloaded constructors
  ***************************************************************************/
-Ubidots::UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
+UbidotsMQTT::UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
   _server = "industrial.api.ubidots.com";
   _token = token;
   _currentValue = 0;
@@ -53,20 +53,20 @@ FUNCTIONS TO SEND DATA
  * @arg dotTimestampMillis [Optional] Dot dotTimestampSeconds in millis to add to
  * dotTimestampSeconds, usefull for datalogger.
  */
-void Ubidots::add(char* variableLabel, float value) {
+void UbidotsMQTT::add(char* variableLabel, float value) {
   add(variableLabel, value, NULL, NULL);
 }
 
-void Ubidots::add(char* variableLabel, float value, char* context) {
+void UbidotsMQTT::add(char* variableLabel, float value, char* context) {
   add(variableLabel, value, context, NULL);
 }
 
-void Ubidots::add(char* variableLabel, float value, char* context,
+void UbidotsMQTT::add(char* variableLabel, float value, char* context,
     unsigned long dotTimestampSeconds) {
   add(variableLabel, value, context, dotTimestampSeconds, NULL);
 }
 
-void Ubidots::add(char* variableLabel, float value, char* context,
+void UbidotsMQTT::add(char* variableLabel, float value, char* context,
                   unsigned long dotTimestampSeconds, uint16_t dotTimestampMillis) {
   (dot + _currentValue)->_variableLabel = variableLabel;
   (dot + _currentValue)->_value = value;
@@ -87,11 +87,11 @@ void Ubidots::add(char* variableLabel, float value, char* context,
  * @arg deviceLabel [Optional] device label where data will be sent to in Ubidots.
  */
 
-bool Ubidots::ubidotsPublish() {
+bool UbidotsMQTT::ubidotsPublish() {
   return ubidotsPublish(_clientName);
 }
 
-bool Ubidots::ubidotsPublish(char* deviceLabel) {
+bool UbidotsMQTT::ubidotsPublish(char* deviceLabel) {
   char topic[150];
   sprintf(topic, "%s%s", FIRST_PART_TOPIC, deviceLabel);
   char* payload = (char*)malloc(sizeof(char) * MAX_BUFFER_SIZE);
@@ -115,7 +115,7 @@ FUNCTIONS TO RETRIEVE DATA
  * @arg deviceLabel [Mandatory] device label to retrieve values from
  * @arg variableLabel [Mandatory] variable label to retrieve values from
  */
-bool Ubidots::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
+bool UbidotsMQTT::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
   char topic[150];
   sprintf(topic, "%s%s/%s/lv", FIRST_PART_TOPIC, deviceLabel, variableLabel);
   if (_debug) {
@@ -132,7 +132,7 @@ AUXILIAR FUNCTIONS
  * Adds to the context structure values to retrieve later it easily by the user
  */
 
-void Ubidots::addContext(char* keyLabel, char* keyValue) {
+void UbidotsMQTT::addContext(char* keyLabel, char* keyValue) {
   (_context + _currentContext)->keyLabel = keyLabel;
   (_context + _currentContext)->keyValue = keyValue;
   _currentContext++;
@@ -148,7 +148,7 @@ void Ubidots::addContext(char* keyLabel, char* keyValue) {
  * Builds the actual stored context properly formatted
  */
 
-void Ubidots::getContext(char* contextResult) {
+void UbidotsMQTT::getContext(char* contextResult) {
   // TCP context type
   sprintf(contextResult, "{");
   for (uint8_t i = 0; i < _currentContext;) {
@@ -169,7 +169,7 @@ void Ubidots::getContext(char* contextResult) {
  * @payload [Mandatory] char payload pointer to store the built structure.
  */
 
-void Ubidots::_buildPayload(char* payload) {
+void UbidotsMQTT::_buildPayload(char* payload) {
   sprintf(payload, "{");
   for (int i = 0; i <= _currentValue;) {
     // Adds the variable label and the dot's value
@@ -212,13 +212,13 @@ void Ubidots::_buildPayload(char* payload) {
 /*
  * Returns true if the device has a socket opened
  */
-bool Ubidots::isConnected() { return _client->isConnected(); }
+bool UbidotsMQTT::isConnected() { return _client->isConnected(); }
 
 /*
  * Opens a TCP socket to the broker
  * @maxRetries [Optional] [default=0]: Maximum number of connection attempts
  */
-bool Ubidots::connect(uint8_t maxRetries) {
+bool UbidotsMQTT::connect(uint8_t maxRetries) {
   bool connected = false;
   _client->connect(_clientName, _token, NULL);
   if (!_client->isConnected()) {
@@ -237,7 +237,7 @@ bool Ubidots::connect(uint8_t maxRetries) {
  * Attempts to open a TCP socket to the broker
  * @maxRetries [Optional] [default=0]: Maximum number of connection attempts
  */
-bool Ubidots::_reconnect(uint8_t maxRetries) {
+bool UbidotsMQTT::_reconnect(uint8_t maxRetries) {
   uint8_t retries = 0;
   while (!_client->isConnected()) {
     _client->connect(_clientName, _token, NULL);
@@ -257,14 +257,14 @@ bool Ubidots::_reconnect(uint8_t maxRetries) {
 /*
  * Returns the MQTT loop method necessary to maintain the TCP socket opened
  */
-bool Ubidots::loop() { return _client->loop(); }
+bool UbidotsMQTT::loop() { return _client->loop(); }
 
 /*
  * Sets a new broker and port to connect with
  * @broker [Mandatory]: Broker DNS
  * @port [Optional] [Default=1883]: TCP port to use to open the socket
  */
-void Ubidots::ubidotsSetBroker(char* broker, uint16_t port) {
+void UbidotsMQTT::ubidotsSetBroker(char* broker, uint16_t port) {
   if (_debug) {
     Serial.printlnf("New settings:\nBroker Url: %s\nPort: %d", broker, port);
   }
@@ -274,4 +274,4 @@ void Ubidots::ubidotsSetBroker(char* broker, uint16_t port) {
 /*
   Makes debug messages available
 */
-void Ubidots::ubidotsSetDebug(bool debug) { _debug = debug; }
+void UbidotsMQTT::ubidotsSetDebug(bool debug) { _debug = debug; }
