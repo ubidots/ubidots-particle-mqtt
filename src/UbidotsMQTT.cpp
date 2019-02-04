@@ -108,7 +108,7 @@ bool UbidotsMQTT::ubidotsPublish(char* device) {
     sprintf(payload, "%s\"%s\": [{\"value\": %s", payload,
             (val + i)->_variableLabel, str.c_str());
     if ((val + i)->_timestamp != NULL) {
-      sprintf(payload, "%s, \"timestamp\": %lu", payload,
+      sprintf(payload, "%s, \"timestamp\": %lu000", payload,
               (val + i)->_timestamp);
     }
     if ((val + i)->_context != NULL) {
