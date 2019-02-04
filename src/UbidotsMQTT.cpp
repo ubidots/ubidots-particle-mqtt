@@ -37,7 +37,7 @@ UbidotsMQTT::UbidotsMQTT(char* token,
   _server = SERVER;
   _token = token;
   _currentValue = 0;
-  val = (ValueMQTT*)malloc(MAX_VALUES * sizeof(ValueMQTT));
+  val = (ValueMQTT*)malloc(MAX_VALUES_MQTT * sizeof(ValueMQTT));
 }
 
 void UbidotsMQTT::add(char* variableLabel, float value) {
@@ -55,11 +55,11 @@ void UbidotsMQTT::add(char* variableLabel, float value, char* context,
   (val + _currentValue)->_context = context;
   (val + _currentValue)->_timestamp = timestamp;
   _currentValue++;
-  if (_currentValue > MAX_VALUES) {
+  if (_currentValue > MAX_VALUES_MQTT) {
     Serial.println(
         F("You are adding more than the maximum of the allowed consecutive "
           "variables"));
-    _currentValue = MAX_VALUES;
+    _currentValue = MAX_VALUES_MQTT;
   }
 }
 
