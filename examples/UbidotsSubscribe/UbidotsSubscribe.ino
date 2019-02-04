@@ -9,7 +9,7 @@
  ****************************************/
 
 #ifndef TOKEN
-#define TOKEN "YOUR_TOKEN"  // Add here your Ubidots TOKEN
+#define TOKEN "YOUR_UBIDOTS_TOKEN"  // Add here your Ubidots TOKEN
 #endif
 
 #define VARIABLE_LABEL_TO_SUBSCRIBE "YOUR_VARIABLE_LABEL"
@@ -38,7 +38,7 @@ void callback(char* topic, uint8_t* payload, unsigned int length) {
  * Instances
  ****************************************/
 
-Ubidots client(TOKEN, callback);
+UbidotsMQTT clientMQTT(TOKEN, callback);
 
 /****************************************
  * Main Functions
@@ -48,27 +48,27 @@ void setup() {
     Serial.begin(115200);
 
     // Comment below line to disable debug messages.
-    client.ubidotsSetDebug(true);
+    clientMQTT.ubidotsSetDebug(true);
 
     // Uncomment below line if you have an Ubidots for Education account
-    //client.ubidotsSetBroker("things.ubidots.com");
+    //clientMQTT.ubidotsSetBroker("things.ubidots.com");
 
     // Connect to broker.
-    client.connect(5); 
+    clientMQTT.connect(5); 
 
-    if(client.isConnected()){
+    if(clientMQTT.isConnected()){
         // Insert as first parameter the device to subscribe and as second the variable label
-        client.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE, VARIABLE_LABEL_TO_SUBSCRIBE); 
+        clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE, VARIABLE_LABEL_TO_SUBSCRIBE); 
     }
 }
 
 void loop() {
-    if(!client.isConnected()){
-        client.connect(5);
+    if(!clientMQTT.isConnected()){
+        clientMQTT.connect(5);
         // Insert as first parameter the device to subscribe and as second the variable label
-        client.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE, VARIABLE_LABEL_TO_SUBSCRIBE); 
+        clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE, VARIABLE_LABEL_TO_SUBSCRIBE); 
     }
 
-    client.loop();
+    clientMQTT.loop();
     delay(5000);
 }
