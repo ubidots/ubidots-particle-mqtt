@@ -47,18 +47,18 @@ Made by: Jose García -- Developer at Ubidots Inc
 #define MAX_VALUES 5
 #endif
 
-typedef struct Value {
+typedef struct ValueMQTT {
   char* _context;
   unsigned long _timestamp;
   float _value;
   char* _variableLabel;
-} Value;
+} ValueMQTT;
 
 class UbidotsMQTT {
  private:
   void (*callback)(char*, uint8_t*, unsigned int);
   MQTT* _client;
-  Value* val;
+  ValueMQTT* val;
   String _clientName;
   bool _debug = false;
   uint8_t _currentValue;
