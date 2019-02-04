@@ -36,6 +36,7 @@ UbidotsMQTT::UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned
   strcpy(_clientName, deviceId.c_str());
   this->callback = callback;
   dot = (Dot*)malloc(MAX_VALUES_MQTT * sizeof(Dot));
+  _context = (ContextUbiMQTT*)malloc(MAX_VALUES_MQTT * sizeof(ContextUbiMQTT));
   this->_client = new MQTT(_server, 1883, this->callback, 512);
 }
 
