@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+# Test folder
+test-developer/*
+
+# VS Code
+.clang-format
+.vscode/
