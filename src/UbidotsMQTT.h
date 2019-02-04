@@ -43,8 +43,8 @@ Made by: Jose García -- Developer at Ubidots Inc
 #define BUFFER_SIZE 512
 #endif
 
-#ifndef MAX_VALUES
-#define MAX_VALUES 5
+#ifndef MAX_VALUES_MQTT
+#define MAX_VALUES_MQTT 5
 #endif
 
 typedef struct ValueMQTT {
