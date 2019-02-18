@@ -9,12 +9,12 @@
  ****************************************/
 
 #ifndef TOKEN
-#define TOKEN "YOUR_UBIDOTS_TOKEN"  // Put here your Ubidots TOKEN
+#define TOKEN "YOUR_UBIDOTS_TOKEN" // Put here your Ubidots TOKEN
 #endif
 
 #define VARIABLE_LABEL "YOUR_VARIABLE_LABEL"
 
-void callback(char* topic, byte* payload, unsigned int length){}; // callback most be defined
+void callback(char *topic, byte *payload, unsigned int length){}; // callback most be defined
 
 /****************************************
  * Instances
@@ -32,7 +32,7 @@ UbidotsMQTT clientMQTT(TOKEN, callback);
  * Main Functions
  ****************************************/
 
-void setup() {
+void setup(){
     Serial.begin(115200);
 
     // Comment below line to disable debug messages in the serial port.
@@ -43,19 +43,31 @@ void setup() {
 
     // Connects to Ubidot Ubidots' Broker
     clientMQTT.connect(5);
-
 }
 
-void loop() {
+void loop(){
 
-    if(!clientMQTT.isConnected()){
+    if (!clientMQTT.isConnected()){
         clientMQTT.connect(5);
     }
 
     // Publish routine, if the device and variables are not created they will be created
     float value = analogRead(A0);
-    clientMQTT.add(VARIABLE_LABEL, value); // Insert as first parameter your variable label
+
+    // Adds context key-value pairs
+    clientMQTT.addContext("weather-status", "sunny");
+    clientMQTT.addContext("time", "11:40:56 pm");
+
+    // Reserves memory to store context array
+    char *context = (char *)malloc(sizeof(char) * 60);
+
+    // Builds the context with the array above to send to Ubidots
+    clientMQTT.getContext(context);
+
+    clientMQTT.add(VARIABLE_LABEL, value, context); // Insert as first parameter your variable label
+
     clientMQTT.ubidotsPublish();
+    free(context);
 
     // Client loop for publishing and to maintain the connection
     clientMQTT.loop();

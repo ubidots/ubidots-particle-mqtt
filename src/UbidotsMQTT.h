@@ -27,24 +27,24 @@ Developed and maintained by Jose Garcia for IoT Services Inc
 #include "MQTT.h"
 #include "application.h"
 
-const uint8_t MAX_VALUES = 5;
-const uint16_t MAX_BUFFER_SIZE = 700;
+const uint8_t MAX_VALUES_MQTT = 5;
+const uint16_t MAX_BUFFER_SIZE_MQTT = 700;
 const char FIRST_PART_TOPIC[15] = "/v1.6/devices/";
 
 typedef struct Dot {
   char *_context;
   float _value;
   char *_variableLabel;
-  unsigned long _timestamp;
-  uint16_t _timestampMillis;
+  unsigned long _dotTimestampSeconds;
+  uint16_t _dotTimestampMillis;
 } Dot;
 
-typedef struct ContextUbi {
-  char *key_label;
-  char *key_value;
-} ContextUbi;
+typedef struct ContextUbiMQTT {
+  char *keyLabel;
+  char *keyValue;
+} ContextUbiMQTT;
 
-class Ubidots {
+class UbidotsMQTT {
  private:
   void (*callback)(char *, uint8_t *, unsigned int);
   MQTT *_client;
@@ -52,27 +52,28 @@ class Ubidots {
   char *_clientName;
   bool _debug = true;
   uint8_t _currentValue;
-  int8_t _current_context;
+  int8_t _currentContext;
   char *_server;
   char *_token;
-  ContextUbi *_context;
+  ContextUbiMQTT *_context;
   bool _reconnect(uint8_t maxRetries);
   void _buildPayload(char *payload);
 
  public:
-  Ubidots(char *token, void (*callback)(char *, uint8_t *, unsigned int));
+  explicit UbidotsMQTT(char *token, void (*callback)(char *, uint8_t *, unsigned int));
   void add(char *variableLabel, float value);
   void add(char *variableLabel, float value, char *context);
   void add(char *variableLabel, float value, char *context,
-           unsigned long timestamp);
+           unsigned long dotTimestampSeconds);
   void add(char *variableLabel, float value, char *context,
-           unsigned long timestamp, uint16_t timestampMillis);
-  void addContext(char *key_label, char *key_value);
-  void getContext(char *context_result);
+           unsigned long dotTimestampSeconds, uint16_t dotTimestampMillis);
+  void addContext(char *keyLabel, char *keyValue);
+  void getContext(char *contextResult);
   bool connect(uint8_t maxRetries = 0);
   bool isConnected();
   bool loop();
-  bool ubidotsPublish(char *device_label);
+  bool ubidotsPublish();
+  bool ubidotsPublish(char *deviceLabel);
   bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
   void ubidotsSetBroker(char *broker, uint16_t port = 1883);
   void ubidotsSetDebug(bool debug);

@@ -54,7 +54,9 @@ void loop() {
 
     // Publish routine, if the device and variables are not created they will be created
     float value = analogRead(A0);
-    clientMQTT.add(VARIABLE_LABEL, value); // Insert as first parameter your variable label
+    unsigned long timestamp_seconds = Time.now();
+
+    clientMQTT.add(VARIABLE_LABEL, value, NULL, timestamp_seconds);  // Change for your variable name
     clientMQTT.ubidotsPublish();
 
     // Client loop for publishing and to maintain the connection
