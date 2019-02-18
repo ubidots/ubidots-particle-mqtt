@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013-2018 Ubidots.
+Copyright (c) 2013-2019 Ubidots.
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
@@ -27,17 +27,17 @@ Developed and maintained by Jose Garcia for IoT Services Inc
 #include "MQTT.h"
 #include "application.h"
 
-const uint8_t MAX_VALUES_MQTT = 5;
+const uint8_t MAX_VALUES_MQTT_MQTT = 5;
 const uint16_t MAX_BUFFER_SIZE_MQTT = 700;
 const char FIRST_PART_TOPIC[15] = "/v1.6/devices/";
 
-typedef struct Dot {
+typedef struct ValueMQTT {
   char *_context;
   float _value;
   char *_variableLabel;
   unsigned long _dotTimestampSeconds;
   uint16_t _dotTimestampMillis;
-} Dot;
+} ValueMQTT;
 
 typedef struct ContextUbiMQTT {
   char *keyLabel;
@@ -48,7 +48,7 @@ class UbidotsMQTT {
  private:
   void (*callback)(char *, uint8_t *, unsigned int);
   MQTT *_client;
-  Dot *dot;
+  ValueMQTT *dot;
   char *_clientName;
   bool _debug = true;
   uint8_t _currentValue;
@@ -60,7 +60,8 @@ class UbidotsMQTT {
   void _buildPayload(char *payload);
 
  public:
-  explicit UbidotsMQTT(char *token, void (*callback)(char *, uint8_t *, unsigned int));
+  explicit UbidotsMQTT(char *token,
+                       void (*callback)(char *, uint8_t *, unsigned int));
   void add(char *variableLabel, float value);
   void add(char *variableLabel, float value, char *context);
   void add(char *variableLabel, float value, char *context,

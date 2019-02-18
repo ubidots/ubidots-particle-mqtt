@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013-2018 Ubidots.
+Copyright (c) 2013-2019 Ubidots.
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
@@ -26,7 +26,8 @@ Developed and maintained by Jose Garcia for IoT Services Inc
 /**************************************************************************
  * Overloaded constructors
  ***************************************************************************/
-UbidotsMQTT::UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned int)) {
+UbidotsMQTT::UbidotsMQTT(char* token,
+                         void (*callback)(char*, uint8_t*, unsigned int)) {
   _server = "industrial.api.ubidots.com";
   _token = token;
   _currentValue = 0;
@@ -35,8 +36,9 @@ UbidotsMQTT::UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned
   _clientName = new char[deviceId.length() + 1];
   strcpy(_clientName, deviceId.c_str());
   this->callback = callback;
-  dot = (Dot*)malloc(MAX_VALUES_MQTT * sizeof(Dot));
-  _context = (ContextUbiMQTT*)malloc(MAX_VALUES_MQTT * sizeof(ContextUbiMQTT));
+  dot = (ValueMQTT*)malloc(MAX_VALUES_MQTT_MQTT * sizeof(ValueMQTT));
+  _context =
+      (ContextUbiMQTT*)malloc(MAX_VALUES_MQTT_MQTT * sizeof(ContextUbiMQTT));
   this->_client = new MQTT(_server, 1883, this->callback, 512);
 }
 
@@ -49,10 +51,10 @@ FUNCTIONS TO SEND DATA
  * @arg variableLabel [Mandatory] variable label where the dot will be stored
  * @arg value [Mandatory] Dot's value.
  * @arg context [Optional] Dot's context to store. Default NULL
- * @arg dotTimestampSeconds [Optional] Dot's dotTimestampSeconds in seconds, usefull for
- * datalogger. Default NULL
- * @arg dotTimestampMillis [Optional] Dot dotTimestampSeconds in millis to add to
- * dotTimestampSeconds, usefull for datalogger.
+ * @arg dotTimestampSeconds [Optional] Dot's dotTimestampSeconds in seconds,
+ * usefull for datalogger. Default NULL
+ * @arg dotTimestampMillis [Optional] Dot dotTimestampSeconds in millis to add
+ * to dotTimestampSeconds, usefull for datalogger.
  */
 void UbidotsMQTT::add(char* variableLabel, float value) {
   add(variableLabel, value, NULL, NULL);
@@ -63,34 +65,34 @@ void UbidotsMQTT::add(char* variableLabel, float value, char* context) {
 }
 
 void UbidotsMQTT::add(char* variableLabel, float value, char* context,
-    unsigned long dotTimestampSeconds) {
+                      unsigned long dotTimestampSeconds) {
   add(variableLabel, value, context, dotTimestampSeconds, NULL);
 }
 
 void UbidotsMQTT::add(char* variableLabel, float value, char* context,
-                  unsigned long dotTimestampSeconds, uint16_t dotTimestampMillis) {
+                      unsigned long dotTimestampSeconds,
+                      uint16_t dotTimestampMillis) {
   (dot + _currentValue)->_variableLabel = variableLabel;
   (dot + _currentValue)->_value = value;
   (dot + _currentValue)->_context = context;
   (dot + _currentValue)->_dotTimestampSeconds = dotTimestampSeconds;
   (dot + _currentValue)->_dotTimestampMillis = dotTimestampMillis;
   _currentValue++;
-  if (_currentValue > MAX_VALUES_MQTT) {
+  if (_currentValue > MAX_VALUES_MQTT_MQTT) {
     Serial.println(
         F("You are adding more than the maximum of the allowed consecutive "
           "variables"));
-    _currentValue = MAX_VALUES_MQTT;
+    _currentValue = MAX_VALUES_MQTT_MQTT;
   }
 }
 
 /*
  * Sends data to Ubidots
- * @arg deviceLabel [Optional] device label where data will be sent to in Ubidots.
+ * @arg deviceLabel [Optional] device label where data will be sent to in
+ * Ubidots.
  */
 
-bool UbidotsMQTT::ubidotsPublish() {
-  return ubidotsPublish(_clientName);
-}
+bool UbidotsMQTT::ubidotsPublish() { return ubidotsPublish(_clientName); }
 
 bool UbidotsMQTT::ubidotsPublish(char* deviceLabel) {
   char topic[150];
@@ -137,11 +139,11 @@ void UbidotsMQTT::addContext(char* keyLabel, char* keyValue) {
   (_context + _currentContext)->keyLabel = keyLabel;
   (_context + _currentContext)->keyValue = keyValue;
   _currentContext++;
-  if (_currentContext >= MAX_VALUES_MQTT) {
+  if (_currentContext >= MAX_VALUES_MQTT_MQTT) {
     Serial.println(
         F("You are adding more than the maximum of consecutive key-values "
           "pairs"));
-    _currentContext = MAX_VALUES_MQTT;
+    _currentContext = MAX_VALUES_MQTT_MQTT;
   }
 }
 
@@ -153,8 +155,8 @@ void UbidotsMQTT::getContext(char* contextResult) {
   // TCP context type
   sprintf(contextResult, "{");
   for (uint8_t i = 0; i < _currentContext;) {
-    sprintf(contextResult, "%s%s:%s", contextResult,
-            (_context + i)->keyLabel, (_context + i)->keyValue);
+    sprintf(contextResult, "%s%s:%s", contextResult, (_context + i)->keyLabel,
+            (_context + i)->keyValue);
     i++;
     if (i < _currentContext) {
       sprintf(contextResult, "%s,", contextResult);
@@ -184,7 +186,8 @@ void UbidotsMQTT::_buildPayload(char* payload) {
 
     // Adds the dotTimestampSeconds
     if ((dot + i)->_dotTimestampSeconds != NULL) {
-      sprintf(payload, "%s,\"dotTimestampSeconds\":%lu", payload, (dot + i)->_dotTimestampSeconds);
+      sprintf(payload, "%s,\"dotTimestampSeconds\":%lu", payload,
+              (dot + i)->_dotTimestampSeconds);
 
       // Adds dotTimestampSeconds milliseconds
       if ((dot + i)->_dotTimestampMillis != NULL) {
