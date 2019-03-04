@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 Ubidots.
+Copyright (c) 2013-2019 Ubidots.
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
@@ -17,8 +17,8 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Made by: Jose García -- Developer at Ubidots Inc
-
+Developed and maintained by Jose Garcia for IoT Services Inc
+@jotathebest at github: https://github.com/jotathebest
 */
 
 #ifndef UbidotsMQTT_H
@@ -27,60 +27,56 @@ Made by: Jose García -- Developer at Ubidots Inc
 #include "MQTT.h"
 #include "application.h"
 
-#ifndef FIRST_PART_TOPIC
-#define FIRST_PART_TOPIC "/v1.6/devices/"
-#endif
-
-#ifndef MQTT_PORT
-#define MQTT_PORT 1883
-#endif
-
-#ifndef SERVER
-#define SERVER "things.ubidots.com"
-#endif
-
-#ifndef BUFFER_SIZE
-#define BUFFER_SIZE 512
-#endif
-
-#ifndef MAX_VALUES_MQTT
-#define MAX_VALUES_MQTT 5
-#endif
+const uint8_t MAX_VALUES_MQTT_MQTT = 5;
+const uint16_t MAX_BUFFER_SIZE_MQTT = 700;
+const char FIRST_PART_TOPIC[15] = "/v1.6/devices/";
 
 typedef struct ValueMQTT {
-  char* _context;
-  unsigned long _timestamp;
+  char *_context;
   float _value;
-  char* _variableLabel;
+  char *_variableLabel;
+  unsigned long _dotTimestampSeconds;
+  uint16_t _dotTimestampMillis;
 } ValueMQTT;
+
+typedef struct ContextUbiMQTT {
+  char *keyLabel;
+  char *keyValue;
+} ContextUbiMQTT;
 
 class UbidotsMQTT {
  private:
-  void (*callback)(char*, uint8_t*, unsigned int);
-  MQTT* _client;
-  ValueMQTT* val;
-  String _clientName;
-  bool _debug = false;
+  void (*callback)(char *, uint8_t *, unsigned int);
+  MQTT *_client;
+  ValueMQTT *dot;
+  char *_clientName;
+  bool _debug = true;
   uint8_t _currentValue;
-  char* _server;
-  char* _token;
-  char* build_json(char* variableLabel, float value, char* context,
-                   char* timestamp);
+  int8_t _currentContext;
+  char *_server;
+  char *_token;
+  ContextUbiMQTT *_context;
+  bool _reconnect(uint8_t maxRetries);
+  void _buildPayload(char *payload);
 
  public:
-  UbidotsMQTT(char* token, void (*callback)(char*, uint8_t*, unsigned int));
-  void add(char* variableLabel, float value);
-  void add(char* variableLabel, float value, char* context);
-  void add(char* variableLabel, float value, char* context,
-           unsigned long timestamp);
-  bool connect();
-  void initialize();
+  explicit UbidotsMQTT(char *token,
+                       void (*callback)(char *, uint8_t *, unsigned int));
+  void add(char *variableLabel, float value);
+  void add(char *variableLabel, float value, char *context);
+  void add(char *variableLabel, float value, char *context,
+           unsigned long dotTimestampSeconds);
+  void add(char *variableLabel, float value, char *context,
+           unsigned long dotTimestampSeconds, uint16_t dotTimestampMillis);
+  void addContext(char *keyLabel, char *keyValue);
+  void getContext(char *contextResult);
+  bool connect(uint8_t maxRetries = 0);
   bool isConnected();
   bool loop();
-  bool reconnect();
-  bool ubidotsPublish(char* device);
-  bool ubidotsSubscribe(char* deviceLabel, char* variableLabel);
-  void ubidotsSetBroker(char* broker);
+  bool ubidotsPublish();
+  bool ubidotsPublish(char *deviceLabel);
+  bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
+  void ubidotsSetBroker(char *broker, uint16_t port = 1883);
   void ubidotsSetDebug(bool debug);
 };
 

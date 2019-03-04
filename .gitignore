@@ -28,9 +28,11 @@
 *.out
 *.app
 
-# Test folder
+# Testing path
 test-developer/*
+lib/*
+.vscode/*
 
-# VS Code
+# IDE
 .clang-format
-.vscode/
+.vscode/*

@@ -9,14 +9,17 @@
  ****************************************/
 
 #ifndef TOKEN
-#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#define TOKEN "YOUR_UBIDOTS_TOKEN"  // Add here your Ubidots TOKEN
 #endif
+
+#define VARIABLE_LABEL_TO_SUBSCRIBE "YOUR_VARIABLE_LABEL"
+#define DEVICE_LABEL_TO_SUBSCRIBE "YOUR_DEVICE_LABEL"
 
 /****************************************
  * Auxiliar Functions
  ****************************************/
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char* topic, uint8_t* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -26,8 +29,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
         (char)payload[i]);  // prints the answer of the broker for debug purpose
   }
   // Some stuff to make with the payload obtained
-  //
-  //
+
   Serial.println();
 }
 
@@ -35,7 +37,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
  * Instances
  ****************************************/
 
-UbidotsMQTT client(TOKEN, callback);
+UbidotsMQTT clientMQTT(TOKEN, callback);
 
 /****************************************
  * Main Functions
@@ -44,26 +46,32 @@ UbidotsMQTT client(TOKEN, callback);
 void setup() {
   Serial.begin(115200);
 
-  // Uncomment this line if you have a business Ubidots account
-  client.ubidotsSetBroker("industrial.api.ubidots.com");
-  client.initialize();
+  // Comment below line to disable debug messages.
+  clientMQTT.ubidotsSetDebug(true);
 
-  if (client.isConnected()) {
+  // Uncomment below line if you have an Ubidots for Education account
+  // clientMQTT.ubidotsSetBroker("things.ubidots.com");
+
+  // Connect to broker.
+  clientMQTT.connect(5);
+
+  if (clientMQTT.isConnected()) {
     // Insert as first parameter the device to subscribe and as second the
     // variable label
-    client.ubidotsSubscribe("device-to-subscribe", "water-level");
+    clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE,
+                                VARIABLE_LABEL_TO_SUBSCRIBE);
   }
 }
 
 void loop() {
-  if (!client.isConnected()) {
-    client.reconnect();
+  if (!clientMQTT.isConnected()) {
+    clientMQTT.connect(5);
     // Insert as first parameter the device to subscribe and as second the
     // variable label
-    client.ubidotsSubscribe("device-to-subscribe", "water-level");
+    clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE,
+                                VARIABLE_LABEL_TO_SUBSCRIBE);
   }
 
-  // Client loop for publishing and to maintain the connection
-  client.loop();
-  delay(1000);
+  clientMQTT.loop();
+  delay(5000);
 }

@@ -9,33 +9,25 @@
  ****************************************/
 
 #ifndef TOKEN
-#define TOKEN "Your TOKEN"  // Add here your Ubidots TOKEN
+#define TOKEN "YOUR_UBIDOTS_TOKEN"  // Put here your Ubidots TOKEN
 #endif
 
-/****************************************
- * Auxiliar Functions
- ****************************************/
+#define VARIABLE_LABEL "YOUR_VARIABLE_LABEL"
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  Serial.println("payload obtained from server:");
-  for (int i = 0; i < length; i++) {
-    Serial.print(
-        (char)payload[i]);  // prints the answer of the broker for debug purpose
-  }
-  // Some stuff to make with the payload obtained
-  //
-  //
-  Serial.println();
-}
+void callback(char* topic, byte* payload,
+              unsigned int length){};  // callback most be defined
 
 /****************************************
  * Instances
  ****************************************/
 
-UbidotsMQTT client(TOKEN, callback);
+UbidotsMQTT clientMQTT(TOKEN, callback);
+
+/****************************************
+ * Auxiliar Functions
+ ****************************************/
+
+// Put here your auxiliar functions.
 
 /****************************************
  * Main Functions
@@ -44,31 +36,29 @@ UbidotsMQTT client(TOKEN, callback);
 void setup() {
   Serial.begin(115200);
 
-  // Uncomment this line if you have a business Ubidots account
-  // client.ubidotsSetBroker("industrial.api.ubidots.com");
+  // Comment below line to disable debug messages in the serial port.
+  clientMQTT.ubidotsSetDebug(true);
 
-  client.initialize();
+  // Uncomment this line if you have an Ubidots for Education account
+  // clientMQTT.ubidotsSetBroker("things.ubidots.com");
+
+  // Connects to Ubidot Ubidots' Broker
+  clientMQTT.connect(5);
 }
 
 void loop() {
-  if (!client.isConnected()) {
-    client.reconnect();
+  if (!clientMQTT.isConnected()) {
+    clientMQTT.connect(5);
   }
 
   // Publish routine, if the device and variables are not created they will be
   // created
-  float value = 1;
-  Serial.println("Sending value");
-  client.add("test-var-1",
-             value);  // Insert as first parameter your variable label
-  client.add("test-var-2", value,
-             "\"lat\":10.302, \"lng\":2.9384");  // Adds value with context
-  client.add("test-var-3", value, NULL,
-             1492445109);                // Adds value with custom timestamp
-  client.ubidotsPublish("test-device");  // Insert your device label where the
-                                         // values will be stored in Ubidots
+  float value = analogRead(A0);
+  clientMQTT.add(VARIABLE_LABEL,
+                 value);  // Insert as first parameter your variable label
+  clientMQTT.ubidotsPublish();
 
   // Client loop for publishing and to maintain the connection
-  client.loop();
-  delay(1000);
+  clientMQTT.loop();
+  delay(5000);
 }
