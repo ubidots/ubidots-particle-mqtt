@@ -76,6 +76,7 @@ class UbidotsMQTT {
   bool ubidotsPublish();
   bool ubidotsPublish(char *deviceLabel);
   bool ubidotsSubscribe(char *deviceLabel, char *variableLabel);
+  bool ubidotsSubscribe(char *deviceLabel, char *variableLabel, bool onlyValue);
   void ubidotsSetBroker(char *broker, uint16_t port = 1883);
   void ubidotsSetDebug(bool debug);
 };
