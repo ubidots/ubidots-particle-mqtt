@@ -60,10 +60,6 @@ void setup() {
     // variable label
     clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE,
                                 VARIABLE_LABEL_TO_SUBSCRIBE);
-    // Subscribe to full dot
-    clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE,
-                                VARIABLE_LABEL_TO_SUBSCRIBE,
-                                false);
   }
 }
 
@@ -74,10 +70,6 @@ void loop() {
     // variable label
     clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE,
                                 VARIABLE_LABEL_TO_SUBSCRIBE);
-    // Subscribe to full dot
-    clientMQTT.ubidotsSubscribe(DEVICE_LABEL_TO_SUBSCRIBE,
-                                VARIABLE_LABEL_TO_SUBSCRIBE,
-                                false);
   }
 
   clientMQTT.loop();
