@@ -131,7 +131,7 @@ Refer to the examples folder
 
 ## Subscribe to a variable
 
-To subscribe to a variable, you need to specify your device and variable lables as input arguments for the ubidotsSubscribe() function. The incoming value will be returned by the MQTT library in the payload variable, by default the subscribed function only gets the last value of the variable subscribed. Retain value feature is only available for business users.
+To subscribe to a variable, you need to specify your device and variable lables as input arguments for the ubidotsSubscribe() function. The incoming value will be returned by the MQTT library in the payload variable, by default the subscribed function only gets the last value of the variable subscribed, if you need the complete dot (value, timestamp, context, etc.), call the subscribe function with a third parameter set to false, e.g. `ubidotsSubscribe("<device label>", "<variable label>", false)`. Retain value feature is only available for business users.
 
 ```cpp
 /****************************************
@@ -268,7 +268,7 @@ void loop() {
     float value = 1;
     Serial.println("Sending value");
     client.add("test-var-1", value); // Insert as first parameter your variable label
-    client.add("test-var-2", value, "\"lat\":10.302, \"lng\":2.9384"); //Adds value with context
+    client.add("test-var-2", value, "{\"lat\":10.302, \"lng\":2.9384}"); //Adds value with context
     client.add("test-var-3", value, NULL, 1492445109); // Adds value with custom timestamp
     client.ubidotsPublish("test-device"); // Insert your device label where the values will be stored in Ubidots
 

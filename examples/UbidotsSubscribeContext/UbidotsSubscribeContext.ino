@@ -15,6 +15,8 @@
 
 #define VARIABLE_LABEL "my-var"
 #define DEVICE_LABEL "my-dev"
+
+// Main loop execution period in seconds
 #define LOOP_PERIOD_SEC 5
 
 /****************************************
@@ -24,7 +26,7 @@
 UbidotsMQTT clientMQTT(TOKEN, callback);
 
 bool subscribedToVar = false;
-char *ssid = NULL;
+char ssid[32 + sizeof("")] = "";
 char bssid[2*6 + 5 + sizeof("")] = "";
 char context[64 + sizeof("")] = "";
 
@@ -33,6 +35,13 @@ char context[64 + sizeof("")] = "";
  ****************************************/
 
 void callback(char* topic, uint8_t* payload, unsigned int length) {
+  /****************************************************************************
+   * Note: For the sake of simplicity, this callback only handles received
+   * payload as a serialized JSON object. Make sure you subscribe only to 
+   * complete dots, e.g. clientMQTT.ubidotsSubscribe("<device>", "<variable>", false),
+   * or make proper adjustments to support last value.
+   ****************************************************************************/
+  
   Serial.println("--------------------------------");
   
   Serial.printlnf("Message from '%s': %*s", topic, length, payload);
@@ -80,11 +89,11 @@ void callback(char* topic, uint8_t* payload, unsigned int length) {
 
 void onConnect() {
   if (!subscribedToVar) {
-    // Subscribe to variable
+    // Subscribe to variable.
     subscribedToVar = clientMQTT.ubidotsSubscribe(
       DEVICE_LABEL,
       VARIABLE_LABEL,
-      false
+      false // false: Will receive full dot on payload as a serialized JSON object
     );
   }
 }
@@ -105,7 +114,8 @@ void setup() {
     onConnect();
   }
   
-  ssid = strdup(WiFi.SSID());
+  // Obtain sample values to be used as variable context.
+  snprintf(ssid, sizeof(ssid), "%s", WiFi.SSID());
   byte buff[6];
   WiFi.BSSID(buff);
   snprintf(bssid, sizeof(bssid), "%02X:%02X:%02X:%02X:%02X:%02X", buff[0], buff[1], buff[2], buff[3], buff[4], buff[5]);
@@ -119,7 +129,7 @@ void loop() {
     }
   }
   
-  // Publish a value with context
+  // Publish a value with context so the example is self-contained.
   WiFiSignal signal = WiFi.RSSI();
   float strength = signal.getStrengthValue();
   
