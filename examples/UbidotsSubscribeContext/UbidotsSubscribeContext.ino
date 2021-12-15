@@ -44,10 +44,10 @@ void callback(char* topic, uint8_t* payload, unsigned int length) {
   
   Serial.println("--------------------------------");
   
-  Serial.printlnf("Message from '%s': %*s", topic, length, payload);
+  Serial.printlnf("Message from '%s': %.*s", topic, length, payload);
   
   char *jsonStr = (char *) malloc(length*sizeof(*payload) + sizeof(""));
-  sprintf(jsonStr, "%*s", length, payload);
+  sprintf(jsonStr, "%.*s", length, payload);
   
   float varValue = NAN;
   const char *ctxSsid = NULL;
