@@ -25,7 +25,6 @@
 
 UbidotsMQTT clientMQTT(TOKEN, callback);
 
-bool subscribedToVar = false;
 char ssid[32 + sizeof("")] = "";
 char bssid[2*6 + 5 + sizeof("")] = "";
 char context[64 + sizeof("")] = "";
@@ -88,14 +87,12 @@ void callback(char* topic, uint8_t* payload, unsigned int length) {
 }
 
 void onConnect() {
-  if (!subscribedToVar) {
-    // Subscribe to variable.
-    subscribedToVar = clientMQTT.ubidotsSubscribe(
-      DEVICE_LABEL,
-      VARIABLE_LABEL,
-      false // false: Will receive full dot on payload as a serialized JSON object
-    );
-  }
+  // Subscribe to variable.
+  clientMQTT.ubidotsSubscribe(
+    DEVICE_LABEL,
+    VARIABLE_LABEL,
+    false // false: Will receive full dot on payload as a serialized JSON object
+  );
 }
 
 /****************************************
