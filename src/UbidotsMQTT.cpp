@@ -154,18 +154,22 @@ void UbidotsMQTT::addContext(char* keyLabel, char* keyValue) {
 
 void UbidotsMQTT::getContext(char* contextResult) {
   // TCP context type
-  char *wr_ptr = contextResult;
   ContextUbiMQTT* ctx = _context;
+  char *wr_ptr = contextResult;
   
+  /* Start JSON object */
   wr_ptr += sprintf(wr_ptr, "{");
   while (_currentContext > 0) {
+    /* Write context key:value pairs */
     wr_ptr += sprintf(wr_ptr, "\"%s\":\"%s\",", ctx->keyLabel, ctx->keyValue);
     ctx++;
     _currentContext--;
   }
+  /* Remove trailing comma */
   if (*(wr_ptr - 1) == ',') {
     wr_ptr--;
   }
+  /* End JSON object */
   wr_ptr += sprintf(wr_ptr, "}");
 }
 
