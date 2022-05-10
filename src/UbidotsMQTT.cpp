@@ -117,10 +117,16 @@ FUNCTIONS TO RETRIEVE DATA
  * Retrieves data from Ubidots
  * @arg deviceLabel [Mandatory] device label to retrieve values from
  * @arg variableLabel [Mandatory] variable label to retrieve values from
+ * @arg onlyValue [Optional] retrieve only numeric value. Default true
  */
 bool UbidotsMQTT::ubidotsSubscribe(char* deviceLabel, char* variableLabel) {
+  return ubidotsSubscribe(deviceLabel, variableLabel, true);
+}
+
+bool UbidotsMQTT::ubidotsSubscribe(char* deviceLabel, char* variableLabel, bool onlyValue) {
   char topic[150];
-  sprintf(topic, "%s%s/%s/lv", FIRST_PART_TOPIC, deviceLabel, variableLabel);
+  const char *topicSuffix = (onlyValue)? "/lv" : "";
+  sprintf(topic, "%s%s/%s%s", FIRST_PART_TOPIC, deviceLabel, variableLabel, topicSuffix);
   if (_debug) {
     Serial.printlnf("Subscribing to: %s", topic);
   }
