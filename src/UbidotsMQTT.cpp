@@ -136,14 +136,15 @@ AUXILIAR FUNCTIONS
  */
 
 void UbidotsMQTT::addContext(char* keyLabel, char* keyValue) {
-  (_context + _currentContext)->keyLabel = keyLabel;
-  (_context + _currentContext)->keyValue = keyValue;
-  _currentContext++;
-  if (_currentContext >= MAX_VALUES_MQTT_MQTT) {
+  if (_currentContext < MAX_VALUES_MQTT_MQTT) {
+    (_context + _currentContext)->keyLabel = keyLabel;
+    (_context + _currentContext)->keyValue = keyValue;
+    _currentContext++;
+  }
+  else {
     Serial.println(
         F("You are adding more than the maximum of consecutive key-values "
           "pairs"));
-    _currentContext = MAX_VALUES_MQTT_MQTT;
   }
 }
 
@@ -153,18 +154,23 @@ void UbidotsMQTT::addContext(char* keyLabel, char* keyValue) {
 
 void UbidotsMQTT::getContext(char* contextResult) {
   // TCP context type
-  sprintf(contextResult, "{");
-  for (uint8_t i = 0; i < _currentContext;) {
-    sprintf(contextResult, "%s%s:%s", contextResult, (_context + i)->keyLabel,
-            (_context + i)->keyValue);
-    i++;
-    if (i < _currentContext) {
-      sprintf(contextResult, "%s,", contextResult);
-    } else {
-      sprintf(contextResult, "%s}", contextResult);
-      _currentContext = 0;
-    }
+  ContextUbiMQTT* ctx = _context;
+  char *wr_ptr = contextResult;
+  
+  /* Start JSON object */
+  wr_ptr += sprintf(wr_ptr, "{");
+  while (_currentContext > 0) {
+    /* Write context key:value pairs */
+    wr_ptr += sprintf(wr_ptr, "\"%s\":\"%s\",", ctx->keyLabel, ctx->keyValue);
+    ctx++;
+    _currentContext--;
   }
+  /* Remove trailing comma */
+  if (*(wr_ptr - 1) == ',') {
+    wr_ptr--;
+  }
+  /* End JSON object */
+  wr_ptr += sprintf(wr_ptr, "}");
 }
 
 /**
@@ -181,7 +187,7 @@ void UbidotsMQTT::_buildPayload(char* payload) {
 
     // Adds the context
     if ((dot + i)->_context != NULL) {
-      sprintf(payload, "%s, \"context\": {%s}", payload, (dot + i)->_context);
+      sprintf(payload, "%s, \"context\": %s", payload, (dot + i)->_context);
     }
 
     // Adds the dotTimestampSeconds
@@ -191,7 +197,7 @@ void UbidotsMQTT::_buildPayload(char* payload) {
 
       // Adds dotTimestampSeconds milliseconds
       if ((dot + i)->_dotTimestampMillis != NULL) {
-        char milliseconds[3];
+        char milliseconds[3 + sizeof("")];
         int dotTimestampSecondsMillis = (dot + i)->_dotTimestampMillis;
         uint8_t units = dotTimestampSecondsMillis % 10;
         uint8_t dec = (dotTimestampSecondsMillis / 10) % 10;
